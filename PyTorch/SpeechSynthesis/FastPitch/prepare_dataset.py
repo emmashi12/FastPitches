@@ -31,7 +31,7 @@ from pathlib import Path
 
 import torch
 import tqdm
-import dllogger as DLLogger
+import dllogger as DLLogger  #a logging tool for deep learning
 from dllogger import StdOutBackend, JSONStreamBackend, Verbosity
 from torch.utils.data import DataLoader
 
@@ -45,7 +45,7 @@ def parse_args(parser):
     parser.add_argument('-d', '--dataset-path', type=str,
                         default='./', help='Path to dataset')
     parser.add_argument('--wav-text-filelists', required=True, nargs='+',
-                        type=str, help='Files with audio paths and text')
+                        type=str, help='Files with audio paths and text')  #not use pitch column
     parser.add_argument('--extract-mels', action='store_true',
                         help='Calculate spectrograms from .wav files')
     parser.add_argument('--extract-pitch', action='store_true',
@@ -63,7 +63,7 @@ def parse_args(parser):
     parser.add_argument('--filter-length', default=1024, type=int,
                         help='Filter length')
     parser.add_argument('--hop-length', default=256, type=int,
-                        help='Hop (stride) length')
+                        help='Hop (stride) length')  #两个frame之间移动的长度
     parser.add_argument('--win-length', default=1024, type=int,
                         help='Window length')
     parser.add_argument('--mel-fmin', default=0.0, type=float,
@@ -76,7 +76,7 @@ def parse_args(parser):
                         choices=['pyin'], help='F0 estimation method')
     # Performance
     parser.add_argument('-b', '--batch-size', default=1, type=int)
-    parser.add_argument('--n-workers', type=int, default=16)
+    parser.add_argument('--n-workers', type=int, default=16)  #单线程读取数据
     return parser
 
 
@@ -142,7 +142,8 @@ def main():
         for i, batch in enumerate(tqdm.tqdm(data_loader)):
             tik = time.time()
 
-            _, input_lens, mels, mel_lens, _, pitch, _, _, attn_prior, fpaths = batch
+            _, input_lens, mels, mel_lens, _, pitch, _, _, attn_prior, fpaths = batch #input_lens is the original length of input character
+            #what is mels and attn_prior?
 
             # Ensure filenames are unique
             for p in fpaths:
