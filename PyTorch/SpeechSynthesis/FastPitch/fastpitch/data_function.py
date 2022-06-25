@@ -68,12 +68,12 @@ class BetaBinomialInterpolator:
 def beta_binomial_prior_distribution(phoneme_count, mel_count, scaling=1.0):
     P = phoneme_count
     M = mel_count
-    x = np.arange(0, P)
+    x = np.arange(0, P) #return an ndarray of evenly spaced values within a given interval
     mel_text_probs = []
     for i in range(1, M+1):
         a, b = scaling * i, scaling * (M + 1 - i)
-        rv = betabinom(P, a, b)
-        mel_i_prob = rv.pmf(x)
+        rv = betabinom(P, a, b) #P,a,b as shape parameters
+        mel_i_prob = rv.pmf(x) #pmf is probability mass function
         mel_text_probs.append(mel_i_prob)
     return torch.tensor(np.array(mel_text_probs))
 
@@ -85,19 +85,23 @@ def estimate_pitch(wav, mel_len, method='pyin', normalize_mean=None,
         normalize_mean = torch.tensor(normalize_mean)
 
     if type(normalize_std) is float or type(normalize_std) is list:
-        normalize_std = torch.tensor(normalize_std)
+        normalize_std = torch.tensor(normalize_std) #use torch.tensor() to construct a tensor
 
     if method == 'pyin':
 
-        snd, sr = librosa.load(wav)
+        snd, sr = librosa.load(wav) #sr is sampling rate   *** snd is np.ndarray of audio time series.
+        #load audio files as a floating point time series.
         pitch_mel, voiced_flag, voiced_probs = librosa.pyin(
             snd, fmin=librosa.note_to_hz('C2'),
             fmax=librosa.note_to_hz('C7'), frame_length=1024)
-        assert np.abs(mel_len - pitch_mel.shape[0]) <= 1.0
+        #F0 estimation using probabilistic Yin.
+        #pitch_mel is time series of fundamental frequencies in Hertz.
+        #f0: np.ndarray[shape=(..., n_frames)]
+        assert np.abs(mel_len - pitch_mel.shape[0]) <= 1.0  #mel_len is the number of mel frames
 
         pitch_mel = np.where(np.isnan(pitch_mel), 0.0, pitch_mel)
         pitch_mel = torch.from_numpy(pitch_mel).unsqueeze(0)
-        pitch_mel = F.pad(pitch_mel, (0, mel_len - pitch_mel.size(1)))
+        pitch_mel = F.pad(pitch_mel, (0, mel_len - pitch_mel.size(1))) #torch.nn.functional as F
 
         if n_formants > 1:
             raise NotImplementedError
@@ -162,7 +166,7 @@ class TTSDataset(torch.utils.data.Dataset):
         self.dataset_path = dataset_path
         self.audiopaths_and_text = load_filepaths_and_text(
             audiopaths_and_text, dataset_path,
-            has_speakers=(n_speakers > 1))
+            has_speakers=(n_speakers > 1)) #load_filepaths_and_text is a function from common.utils ***see line 42
         self.load_mel_from_disk = load_mel_from_disk
         if not load_mel_from_disk:
             self.max_wav_value = max_wav_value
@@ -210,10 +214,10 @@ class TTSDataset(torch.utils.data.Dataset):
             audiopath, *extra, text, speaker = self.audiopaths_and_text[index]
             speaker = int(speaker)
         else:
-            audiopath, *extra, text = self.audiopaths_and_text[index]
+            audiopath, *extra, text = self.audiopaths_and_text[index]  #what is *extra?
             speaker = None
 
-        mel = self.get_mel(audiopath)
+        mel = self.get_mel(audiopath) #method see line 238
         text = self.get_text(text)
         pitch = self.get_pitch(index, mel.size(-1))
         energy = torch.norm(mel.float(), dim=0, p=2)
@@ -236,7 +240,7 @@ class TTSDataset(torch.utils.data.Dataset):
             audio, sampling_rate = load_wav_to_torch(filename)
             if sampling_rate != self.stft.sampling_rate:
                 raise ValueError("{} SR doesn't match target {} SR".format(
-                    sampling_rate, self.stft.sampling_rate))
+                    sampling_rate, self.stft.sampling_rate)) #see line 174 for stft
             audio_norm = audio / self.max_wav_value
             audio_norm = audio_norm.unsqueeze(0)
             audio_norm = torch.autograd.Variable(audio_norm,
@@ -273,7 +277,7 @@ class TTSDataset(torch.utils.data.Dataset):
             audiopath, *_ = self.audiopaths_and_text[index]
             fname = Path(audiopath).relative_to(self.dataset_path) if self.dataset_path else Path(audiopath)
             fname = fname.with_suffix('.pt')
-            cached_fpath = Path(self.betabinomial_tmp_dir, fname)
+            cached_fpath = Path(self.betabinomial_tmp_dir, fname) #what is cached_fpath?
 
             if cached_fpath.is_file():
                 return torch.load(cached_fpath)

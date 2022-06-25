@@ -41,6 +41,7 @@ from fastpitch.transformer import FFTransformer
 def regulate_len(durations, enc_out, pace: float = 1.0,
                  mel_max_len: Optional[int] = None):
     """If target=None, then predicted durations are applied"""
+    #up sampling the data
     dtype = enc_out.dtype
     reps = durations.float() / pace
     reps = (reps + 0.5).long()
@@ -86,7 +87,7 @@ def average_pitch(pitch, durs):
 
 class TemporalPredictor(nn.Module):
     """Predicts a single float per each temporal location"""
-
+    #for pitch, energy and duration (maybe spectral tilt)
     def __init__(self, input_size, filter_size, kernel_size, dropout,
                  n_layers=2, n_predictions=1):
         super(TemporalPredictor, self).__init__()
