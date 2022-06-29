@@ -1,5 +1,6 @@
 import re
 
+
 def extract_text(infile="ljs_audio_text_val.txt", outfile=None):
     with open(infile) as file:
         for l in file:
@@ -13,5 +14,6 @@ def extract_text(infile="ljs_audio_text_val.txt", outfile=None):
             if outfile:
                 with open(outname + ".lab", 'a') as f:
                     f.write('{}'.format(text))
+
 
 extract_text(outfile=True)

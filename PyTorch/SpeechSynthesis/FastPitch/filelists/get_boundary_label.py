@@ -1,0 +1,48 @@
+import pandas as pd
+import glob, os
+
+
+def load_file(in_file=None):
+    column_names = ['id', 'start_time', 'end_time', 'unit', 'p_strength', 'b_strength']
+    data = pd.read_csv(in_file, names=column_names, header=None, delimiter='\t')
+    prom = data['p_strength'].max()
+    #print(data['p_strength'].idxmax())
+    return data, prom
+
+
+def get_boundary_label(value):
+    if value <= 0.5:
+        return "b0"
+    elif value > 1:
+        return "b2"
+    else:
+        return "b1"
+
+
+def get_prominence_label(value, data):
+    if value == data:
+        return 1
+    else:
+        return 0
+
+
+def write_csv_file(out_filepath, data):
+    data.to_csv(out_filepath, sep='\t')
+
+
+in_filepath = '/Users/emmashi/Desktop/FastPitches_notes/PyTorch/SpeechSynthesis/FastPitch/filelists/my_corpus'
+os.chdir(in_filepath)
+cwd = os.getcwd()
+print("Current working directory is:", cwd)
+
+head, tail = os.path.split(in_filepath)
+out_filepath = head + '/labelled_file/'
+os.makedirs(out_filepath, exist_ok=True)
+
+for file in glob.glob('*.prom'):
+    data, prom = load_file(file)
+    data['b_label'] = data.apply(lambda x: get_boundary_label(x.b_strength), axis=1)
+    data['p_label'] = data.apply(lambda x: get_prominence_label(x.p_strength, prom), axis=1)
+    #print(data)
+    #print(out_filepath + file)
+    write_csv_file(out_filepath + file, data)
