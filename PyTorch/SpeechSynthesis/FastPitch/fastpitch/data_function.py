@@ -132,6 +132,7 @@ class TTSDataset(torch.utils.data.Dataset):
         2) normalizes text and converts them to sequences of one-hot vectors
         3) computes mel-spectrograms from audio files.
     """
+    #----------modified------------
     def __init__(self,
                  dataset_path,
                  audiopaths_and_text,
@@ -158,6 +159,7 @@ class TTSDataset(torch.utils.data.Dataset):
                  use_betabinomial_interpolator=True,
                  pitch_online_method='pyin',
                  **ignored):
+        #load_prominence_from_disk = True,
 
         # Expect a list of filenames
         if type(audiopaths_and_text) is str:
@@ -175,6 +177,8 @@ class TTSDataset(torch.utils.data.Dataset):
                 filter_length, hop_length, win_length,
                 n_mel_channels, sampling_rate, mel_fmin, mel_fmax)
         self.load_pitch_from_disk = load_pitch_from_disk
+        #----------load prominence from disk-------------
+        # self.load_prominence_from_disk = load_prominence_from_disk
 
         self.prepend_space_to_text = prepend_space_to_text
         self.append_space_to_text = append_space_to_text
@@ -327,6 +331,11 @@ class TTSDataset(torch.utils.data.Dataset):
             torch.save(pitch_mel, cached_fpath)
 
         return pitch_mel
+
+    #--------get_prominence------------
+    # def get_prom(self, filename):
+    #     if self.load_prominence_from_disk:
+    #         pass
 
 
 class TTSCollate:
