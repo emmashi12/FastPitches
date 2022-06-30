@@ -130,6 +130,7 @@ class TextProcessing(object):
         text_clean = ' '.join(text_clean)
         text_clean = cleaners.collapse_whitespace(text_clean)
         text = text_clean
+        print(text)
 
         text_arpabet = ''
         if self.p_arpabet > 0:
