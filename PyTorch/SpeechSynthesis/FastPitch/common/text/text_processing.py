@@ -45,8 +45,6 @@ class TextProcessing(object):
         # Check for curly braces and treat their contents as ARPAbet:
         while len(text):
             m = _curly_re.match(text)
-            print(f'group1: {m.group(1)}')
-            print(f'group2: {m.group(2)}')
             if not m:
                 sequence += self.symbols_to_sequence(text)
                 break
