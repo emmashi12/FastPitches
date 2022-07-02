@@ -181,7 +181,7 @@ class TextProcessing(object):
 
         text_encoded = self.text_to_sequence(text)
         print(f'Text encoded: {text_encoded}')
-
+        print(f'Text arpabet: {text_arpabet}')
         if return_all:
             return text_encoded, text_clean, text_arpabet
 
