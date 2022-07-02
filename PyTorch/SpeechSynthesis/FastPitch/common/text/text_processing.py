@@ -45,6 +45,8 @@ class TextProcessing(object):
         # Check for curly braces and treat their contents as ARPAbet:
         while len(text):
             m = _curly_re.match(text)
+            print(f'group1: {m.group(1)}')
+            print(f'group2: {m.group(2)}')
             if not m:
                 sequence += self.symbols_to_sequence(text)
                 break
@@ -75,12 +77,13 @@ class TextProcessing(object):
         return text
 
     def symbols_to_sequence(self, symbols):
-        return [self.symbol_to_id[s] for s in symbols if s in self.symbol_to_id]
+        return [self.symbol_to_id[s] for s in symbols if s in self.symbol_to_id] #get a sequence of id
 
     def arpabet_to_sequence(self, text):
         return self.symbols_to_sequence(['@' + s for s in text.split()])
 
     def get_arpabet(self, word):
+        #get transcription of single word
         arpabet_suffix = ''
 
         if word.lower() in cmudict.heteronyms:
@@ -118,19 +121,25 @@ class TextProcessing(object):
         else:
             arpabet = arpabet[0]
 
-        arpabet = "{" + arpabet + arpabet_suffix + "}"
+        arpabet = "{" + arpabet + arpabet_suffix + "}" #arpabet is a string
 
         return arpabet
 
     def encode_text(self, text, return_all=False):
+        #input text is word
         if self.expand_currency:
             text = re.sub(_currency_re, _expand_currency, text)
         text_clean = [self.clean_text(split) if split[0] != '{' else split
                       for split in _arpa_re.findall(text)]
+        # for split in _arpa_re.findall(text):
+        #     if split[0] != '{':
+        #         text_clean = [self.clean_text(split)]
+        #     else:
+        #         text_clean = [split]
         text_clean = ' '.join(text_clean)
         text_clean = cleaners.collapse_whitespace(text_clean)
-        text = text_clean
-        print(text)
+        text = text_clean #get words after cleaning
+        print(f"Clean Text: {text}")
 
         text_arpabet = ''
         if self.p_arpabet > 0:
@@ -141,8 +150,14 @@ class TextProcessing(object):
                         self.get_arpabet(word[0])
                         if (word[0] != '') else word[1]
                         for word in words]
+                    # for word in words:
+                    #     if word[0] != '':
+                    #         text_arpabet = self.get_arpabet(word[0])
+                    #     else:
+                    #         text_arpabet = self.get_arpabet(word[1])
                     text_arpabet = ''.join(text_arpabet)
-                    text = text_arpabet
+                    text = text_arpabet #now text is phone sequence of one sentence
+                    print(f'sentence arpabet: {text}')
             elif self.handle_arpabet == 'word':
                 words = _words_re.findall(text)
                 text_arpabet = [
@@ -151,13 +166,23 @@ class TextProcessing(object):
                         if np.random.uniform() < self.p_arpabet
                         else word[0])
                     for word in words]
+                for word in words:
+                    if word[0] == '':
+                        text_arpabet = word[1]
+                    else:
+                        if np.random.uniform() < self.p_arpabet:
+                            text_arpabet = self.get_arpabet(word[0])
+                        else:
+                            text_arpabet = self.get_arpabet(word[1])
                 text_arpabet = ''.join(text_arpabet)
                 text = text_arpabet
+                print(f'word arpabet: {text}')
             elif self.handle_arpabet != '':
                 raise Exception("{} handle_arpabet is not supported".format(
                     self.handle_arpabet))
 
         text_encoded = self.text_to_sequence(text)
+        print(f'Text encoded: {text_encoded}')
 
         if return_all:
             return text_encoded, text_clean, text_arpabet
