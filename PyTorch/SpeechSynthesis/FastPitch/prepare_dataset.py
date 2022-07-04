@@ -63,7 +63,7 @@ def parse_args(parser):
     parser.add_argument('--filter-length', default=1024, type=int,
                         help='Filter length')
     parser.add_argument('--hop-length', default=256, type=int,
-                        help='Hop (stride) length')  #两个frame之间移动的长度
+                        help='Hop (stride) length')  #moving length between two frames
     parser.add_argument('--win-length', default=1024, type=int,
                         help='Window length')
     parser.add_argument('--mel-fmin', default=0.0, type=float,
@@ -76,7 +76,7 @@ def parse_args(parser):
                         choices=['pyin'], help='F0 estimation method')
     # Performance
     parser.add_argument('-b', '--batch-size', default=1, type=int)
-    parser.add_argument('--n-workers', type=int, default=16)  #单线程读取数据
+    parser.add_argument('--n-workers', type=int, default=16)  #read in data in a single line
     return parser
 
 
@@ -111,7 +111,7 @@ def main():
             filelist,
             text_cleaners=['english_cleaners_v2'],
             n_mel_channels=args.n_mel_channels,
-            p_arpabet=0.0,
+            p_arpabet=1.0,
             n_speakers=args.n_speakers,
             load_mel_from_disk=False,
             load_pitch_from_disk=False,
