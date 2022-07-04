@@ -137,7 +137,8 @@ class TextProcessing(object):
         text_clean = ' '.join(text_clean)
         text_clean = cleaners.collapse_whitespace(text_clean)
         text = text_clean #get words after cleaning
-        print(f"Clean Text: {text}")
+        print(f"Clean Text: {text_clean}")
+        print(type(text_clean))
 
         text_arpabet = ''
         if self.p_arpabet > 0:
@@ -148,9 +149,10 @@ class TextProcessing(object):
                         self.get_arpabet(word[0])
                         if (word[0] != '') else word[1]
                         for word in words]
+                    # text_arpabet = []
                     # for word in words:
                     #     if word[0] != '':
-                    #         text_arpabet = self.get_arpabet(word[0])
+                    #         text_arpabet.append(self.get_arpabet(word[0]))
                     #     else:
                     #         text_arpabet = self.get_arpabet(word[1])
                     text_arpabet = ''.join(text_arpabet)
@@ -164,14 +166,15 @@ class TextProcessing(object):
                         if np.random.uniform() < self.p_arpabet
                         else word[0])
                     for word in words]
-                for word in words:
-                    if word[0] == '':
-                        text_arpabet = word[1]
-                    else:
-                        if np.random.uniform() < self.p_arpabet:
-                            text_arpabet = self.get_arpabet(word[0])
-                        else:
-                            text_arpabet = self.get_arpabet(word[1])
+                # text_arpabet = []
+                # for word in words:
+                #     if word[0] == '':
+                #         text_arpabet.append(word[1])
+                #     else:
+                #         if np.random.uniform() < self.p_arpabet:
+                #             text_arpabet.append(self.get_arpabet(word[0]))
+                #         else:
+                #             text_arpabet.append(self.get_arpabet(word[0]))
                 text_arpabet = ''.join(text_arpabet)
                 text = text_arpabet
                 print(f'word arpabet: {text}')
@@ -181,7 +184,7 @@ class TextProcessing(object):
 
         text_encoded = self.text_to_sequence(text)
         print(f'Text encoded: {text_encoded}')
-        print(f'Text arpabet: {text_arpabet}')
+        print(type(text_encoded))
         if return_all:
             return text_encoded, text_clean, text_arpabet
 
