@@ -200,7 +200,7 @@ class TextProcessing(object):
                             text_arpabet += word[0]
                             print(f'word[0]: {word[0]}')
 
-                return text_encoded
+                return text_encoded, text_info
 
             elif self.handle_arpabet != '':
                 raise Exception("{} handle_arpabet is not supported".format(
@@ -208,6 +208,7 @@ class TextProcessing(object):
 
         text_encoded = self.text_to_sequence(text)
         print(f'Text encoded: {text_encoded}')
+        print(len(text_encoded))
         print(type(text_encoded))
         if return_all:
             return text_encoded, text_clean, text_arpabet

@@ -115,7 +115,7 @@ def main():
             n_speakers=args.n_speakers,
             load_mel_from_disk=False,
             load_pitch_from_disk=False,
-            cwt_count=True,
+            cwt_count=False,
             pitch_mean=None,
             pitch_std=None,
             max_wav_value=args.max_wav_value,
