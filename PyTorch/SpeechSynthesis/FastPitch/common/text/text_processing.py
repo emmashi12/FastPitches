@@ -23,8 +23,8 @@ _arpa_re = re.compile(r'{[^}]+}|\S+')
 
 class TextProcessing(object):
     def __init__(self, symbol_set, cleaner_names, p_arpabet=0.0,
-                 handle_arpabet='word', handle_arpabet_ambiguous='ignore',
-                 expand_currency=True):
+                 handle_arpabet='word', handle_arpabet_ambiguous='random',
+                 expand_currency=True, get_count=True):
         self.symbols = get_symbols(symbol_set)
         self.cleaner_names = cleaner_names
 
@@ -32,6 +32,7 @@ class TextProcessing(object):
         self.symbol_to_id = {s: i for i, s in enumerate(self.symbols)}
         self.id_to_symbol = {i: s for i, s in enumerate(self.symbols)}
         self.expand_currency = expand_currency
+        self.get_count = get_count
 
         # cmudict
         self.p_arpabet = p_arpabet
@@ -154,30 +155,41 @@ class TextProcessing(object):
                     #     if word[0] != '':
                     #         text_arpabet.append(self.get_arpabet(word[0]))
                     #     else:
-                    #         text_arpabet = self.get_arpabet(word[1])
+                    #         text_arpabet.append(word[1])
                     text_arpabet = ''.join(text_arpabet)
                     text = text_arpabet #now text is phone sequence of one sentence
                     print(f'sentence arpabet: {text}')
-            elif self.handle_arpabet == 'word':
-                words = _words_re.findall(text)
+
+            elif self.handle_arpabet == 'word' and self.get_count is False:
+                words = _words_re.findall(text) #return a tuple
+                print(f'word structure: {words}')
                 text_arpabet = [
                     word[1] if word[0] == '' else (
                         self.get_arpabet(word[0])
                         if np.random.uniform() < self.p_arpabet
                         else word[0])
                     for word in words]
-                # text_arpabet = []
-                # for word in words:
-                #     if word[0] == '':
-                #         text_arpabet.append(word[1])
-                #     else:
-                #         if np.random.uniform() < self.p_arpabet:
-                #             text_arpabet.append(self.get_arpabet(word[0]))
-                #         else:
-                #             text_arpabet.append(self.get_arpabet(word[0]))
                 text_arpabet = ''.join(text_arpabet)
                 text = text_arpabet
                 print(f'word arpabet: {text}')
+
+            elif self.handle_arpabet == 'word' and self.get_count is True:
+                words = _words_re.findall(text)
+                print(f'word structure: {words}')
+                text_arpabet = []
+                #text_encoded = []
+                for word in words:
+                    if word[0] == '':
+                        text_arpabet.append(word[1])
+                    else:
+                        if np.random.uniform() < self.p_arpabet:
+                            text_arpabet.append(self.get_arpabet(word[0]))
+                        else:
+                            text_arpabet.append(word[0])
+                text_arpabet = ''.join(text_arpabet)
+                text = text_arpabet
+                print(f'word arpabet: {text}')
+
             elif self.handle_arpabet != '':
                 raise Exception("{} handle_arpabet is not supported".format(
                     self.handle_arpabet))

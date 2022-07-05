@@ -126,6 +126,10 @@ def normalize_pitch(pitch, mean, std):
     return pitch
 
 
+# def estimate_prominence(text, phoneme_len):
+
+
+
 class TTSDataset(torch.utils.data.Dataset):
     """
         1) loads audio,text pairs
@@ -143,6 +147,7 @@ class TTSDataset(torch.utils.data.Dataset):
                  n_speakers=1,
                  load_mel_from_disk=True,
                  load_pitch_from_disk=True,
+                 cwt_count=True,
                  pitch_mean=214.72203,  # LJSpeech defaults
                  pitch_std=65.72038,
                  max_wav_value=None,
@@ -159,7 +164,6 @@ class TTSDataset(torch.utils.data.Dataset):
                  use_betabinomial_interpolator=True,
                  pitch_online_method='pyin',
                  **ignored):
-        #load_prominence_from_disk = True,
 
         # Expect a list of filenames
         if type(audiopaths_and_text) is str:
@@ -177,8 +181,10 @@ class TTSDataset(torch.utils.data.Dataset):
                 filter_length, hop_length, win_length,
                 n_mel_channels, sampling_rate, mel_fmin, mel_fmax)
         self.load_pitch_from_disk = load_pitch_from_disk
+
         #----------load prominence from disk-------------
-        # self.load_prominence_from_disk = load_prominence_from_disk
+        #self.load_prom_from_disk = load_prom_from_disk
+        self.cwt_count = cwt_count
 
         self.prepend_space_to_text = prepend_space_to_text
         self.append_space_to_text = append_space_to_text
@@ -187,7 +193,11 @@ class TTSDataset(torch.utils.data.Dataset):
             'Only 0.0 and 1.0 p_arpabet is currently supported. '
             'Variable probability breaks caching of betabinomial matrices.')
 
-        self.tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet)
+        if self.cwt_count is True:
+            self.tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=True)
+        else:
+            self.tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=False)
+
         self.n_speakers = n_speakers
         self.pitch_tmp_dir = pitch_online_dir
         self.f0_method = pitch_online_method
@@ -197,6 +207,7 @@ class TTSDataset(torch.utils.data.Dataset):
         if use_betabinomial_interpolator:
             self.betabinomial_interpolator = BetaBinomialInterpolator()
 
+        #---------should modify??-----------
         expected_columns = (2 + int(load_pitch_from_disk) + (n_speakers > 1))
 
         assert not (load_pitch_from_disk and self.pitch_tmp_dir is not None)
@@ -204,6 +215,7 @@ class TTSDataset(torch.utils.data.Dataset):
         if len(self.audiopaths_and_text[0]) < expected_columns:
             raise ValueError(f'Expected {expected_columns} columns in audiopaths file. '
                              'The format is <mel_or_wav>|[<pitch>|]<text>[|<speaker_id>]')
+        #using <mel_or_wav>|[<pitch>|][<prom>|]<text>[|<speaker_id>]
 
         if len(self.audiopaths_and_text[0]) > expected_columns:
             print('WARNING: Audiopaths file has more columns than expected')
@@ -214,27 +226,33 @@ class TTSDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
         # Separate filename and text
+        #-----------modified------------
         if self.n_speakers > 1:
             audiopath, *extra, text, speaker = self.audiopaths_and_text[index]
             speaker = int(speaker)
         else:
-            audiopath, *extra, text = self.audiopaths_and_text[index]  #what is *extra?
+            audiopath, *extra, text = self.audiopaths_and_text[index]
             speaker = None
 
         mel = self.get_mel(audiopath) #method see line 238
         text = self.get_text(text)
+        print(f'text shape: {text.shape}')
         pitch = self.get_pitch(index, mel.size(-1))
+        print(f'pitch shape: {pitch.shape}')
+        #prom = self.get_prom()
         energy = torch.norm(mel.float(), dim=0, p=2)
         attn_prior = self.get_prior(index, mel.shape[1], text.shape[0])
+        #text_len = text.shape[0]     mel_len = mel.shape[1]
 
         assert pitch.size(-1) == mel.size(-1)
+        #sanity check for number of pitch values and number of frames
 
         # No higher formants?
         if len(pitch.size()) == 1:
             pitch = pitch[None, :]
 
         return (text, mel, len(text), pitch, energy, speaker, attn_prior,
-                audiopath)
+                audiopath) #----------modify-----------add prom
 
     def __len__(self):
         return len(self.audiopaths_and_text)
@@ -260,14 +278,17 @@ class TTSDataset(torch.utils.data.Dataset):
         return melspec
 
     def get_text(self, text):
-        text = self.tp.encode_text(text)
-        space = [self.tp.encode_text("A A")[1]]
+        #word input, phoneme tensor output
+        text = self.tp.encode_text(text) #see line 190, get a list of a sequence of index representing the text
+        print(f'text len: {len(text)}')
+        space = [self.tp.encode_text("A A")[1]] #get the encoded representation of space
 
         if self.prepend_space_to_text:
             text = space + text
 
         if self.append_space_to_text:
             text = text + space
+        print(f'add space len: {len(text)}')
 
         return torch.LongTensor(text)
 
@@ -332,10 +353,14 @@ class TTSDataset(torch.utils.data.Dataset):
 
         return pitch_mel
 
-    #--------get_prominence------------
-    # def get_prom(self, filename):
-    #     if self.load_prominence_from_disk:
-    #         pass
+    # --------get_prominence------------
+    # def get_prom_label(self, index, text_len, ):
+    #     audiopath, *fields = self.audiopaths_and_text[index]
+    #     if self.load_prom_from_disk:
+    #         prompath = fields[1]
+    #         prom = torch.load(prompath)
+    #         return prom
+
 
 
 class TTSCollate:
