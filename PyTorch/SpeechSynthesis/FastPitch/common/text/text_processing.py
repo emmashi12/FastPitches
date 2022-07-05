@@ -191,7 +191,7 @@ class TextProcessing(object):
                             text_arpabet = ''.join(arpabet)
                             encoded = self.text_to_sequence(text_arpabet)
                             text_arpabet += arpabet
-                            text_arpabet = ''.join(text_arpabet)
+                            #text_arpabet = ''.join(text_arpabet)
                             print(f'text arpabet: {text_arpabet}')
                             text_encoded += encoded
                             text_info.append(len(encoded))
