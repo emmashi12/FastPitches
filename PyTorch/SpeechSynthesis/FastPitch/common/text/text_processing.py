@@ -188,9 +188,9 @@ class TextProcessing(object):
                     else:
                         if np.random.uniform() < self.p_arpabet:
                             arpabet = self.get_arpabet(word[0])
-                            text_arpabet = ''.join(arpabet)
-                            encoded = self.text_to_sequence(text_arpabet)
-                            text_arpabet += arpabet
+                            ta = ''.join(arpabet)
+                            encoded = self.text_to_sequence(ta)
+                            text_arpabet += ta
                             #text_arpabet = ''.join(text_arpabet)
                             print(f'text arpabet: {text_arpabet}')
                             text_encoded += encoded
