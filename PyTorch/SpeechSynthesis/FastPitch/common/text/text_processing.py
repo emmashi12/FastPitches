@@ -183,18 +183,20 @@ class TextProcessing(object):
                         text_arpabet += word[1]
                         text_arpabet = ''.join(text_arpabet)
                         print(text_arpabet)
-                        #text_encoded.append()
+                        text_encoded += self.text_to_sequence(word[1])
+                        print(text_encoded)
                     else:
                         if np.random.uniform() < self.p_arpabet:
                             arpabet = self.get_arpabet(word[0])
+                            text_arpabet = ''.join(arpabet)
+                            encoded = self.text_to_sequence(text_arpabet)
                             text_arpabet += arpabet
                             text_arpabet = ''.join(text_arpabet)
                             print(f'text arpabet: {text_arpabet}')
-                            #text_arpabet.append(self.get_arpabet(word[0]))
-                            #text_encoded += self.text_to_sequence(word)
-                            #text_info +=
+                            text_encoded += encoded
+                            text_info += len(encoded)
                         else:
-                            text_arpabet.append(word[0])
+                            text_arpabet += word[0]
 
                 return text_encoded
 
