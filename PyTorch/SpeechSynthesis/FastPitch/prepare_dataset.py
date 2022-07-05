@@ -76,7 +76,7 @@ def parse_args(parser):
                         choices=['pyin'], help='F0 estimation method')
     # Performance
     parser.add_argument('-b', '--batch-size', default=1, type=int)
-    parser.add_argument('--n-workers', type=int, default=16)  #readin data in a single process
+    parser.add_argument('--n-workers', type=int, default=16)  #read in data in a single line
     return parser
 
 
