@@ -162,7 +162,6 @@ class TextProcessing(object):
 
             elif self.handle_arpabet == 'word' and self.get_count is False:
                 words = _words_re.findall(text) #return a tuple
-                print(f'word structure: {words}')
                 text_arpabet = [
                     word[1] if word[0] == '' else (
                         self.get_arpabet(word[0])
@@ -175,20 +174,27 @@ class TextProcessing(object):
 
             elif self.handle_arpabet == 'word' and self.get_count is True:
                 words = _words_re.findall(text)
-                print(f'word structure: {words}')
+                print(f'word structure: {words}') #format [('word', ''), ('', ' ')]
                 text_arpabet = []
-                #text_encoded = []
+                text_encoded = []
+                text_info = []
                 for word in words:
                     if word[0] == '':
-                        text_arpabet.append(word[1])
+                        text_arpabet += word[1]
+                        print(text_arpabet)
+                        #text_encoded.append()
                     else:
                         if np.random.uniform() < self.p_arpabet:
-                            text_arpabet.append(self.get_arpabet(word[0]))
+                            arpabet = self.get_arpabet(word[0])
+                            text_arpabet += arpabet
+                            print(f'text arpabet: {text_arpabet}')
+                            #text_arpabet.append(self.get_arpabet(word[0]))
+                            #text_encoded += self.text_to_sequence(word)
+                            #text_info +=
                         else:
                             text_arpabet.append(word[0])
-                text_arpabet = ''.join(text_arpabet)
-                text = text_arpabet
-                print(f'word arpabet: {text}')
+
+                return text_encoded
 
             elif self.handle_arpabet != '':
                 raise Exception("{} handle_arpabet is not supported".format(
