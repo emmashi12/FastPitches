@@ -181,12 +181,14 @@ class TextProcessing(object):
                 for word in words:
                     if word[0] == '':
                         text_arpabet += word[1]
+                        text_arpabet = ''.join(text_arpabet)
                         print(text_arpabet)
                         #text_encoded.append()
                     else:
                         if np.random.uniform() < self.p_arpabet:
                             arpabet = self.get_arpabet(word[0])
                             text_arpabet += arpabet
+                            text_arpabet = ''.join(text_arpabet)
                             print(f'text arpabet: {text_arpabet}')
                             #text_arpabet.append(self.get_arpabet(word[0]))
                             #text_encoded += self.text_to_sequence(word)
