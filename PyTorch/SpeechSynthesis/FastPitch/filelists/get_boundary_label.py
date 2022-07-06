@@ -30,7 +30,7 @@ def write_csv_file(out_filepath, data):
     data.to_csv(out_filepath, sep='\t')
 
 
-in_filepath = '/Users/emmashi/Desktop/FastPitches_notes/PyTorch/SpeechSynthesis/FastPitch/filelists/my_corpus'
+in_filepath = '/Users/emmashi/Desktop/my_corpus'
 os.chdir(in_filepath)
 cwd = os.getcwd()
 print("Current working directory is:", cwd)

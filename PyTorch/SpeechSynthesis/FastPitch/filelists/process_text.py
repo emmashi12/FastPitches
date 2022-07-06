@@ -2,8 +2,8 @@ import re
 import os
 
 
-def extract_text(infile="testone.txt", outfile=None):
-    out_filepath = '/Users/emmashi/Desktop/FastPitches_notes/PyTorch/SpeechSynthesis/FastPitch/filelists/text'
+def extract_text(infile="ljs_audio_text.txt", outfile=None):
+    out_filepath = '/Users/emmashi/Desktop/wavs'
     os.makedirs(out_filepath, exist_ok=True)
     with open(infile) as file:
         for l in file:

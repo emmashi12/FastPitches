@@ -81,7 +81,7 @@ def load_filepaths_and_text(fnames, dataset_path=None, has_speakers=False,
     #         return tuple(str(Path(root, p)) for p in paths) + tuple(non_paths)
     #     else:
     #         return tuple(str(Path(p)) for p in paths) + tuple(non_paths)
-
+    fpaths_and_text = []
     for fname in fnames:
         with open(fname, encoding='utf-8') as f:
             dict_reader = DictReader(f, delimiter=split, quoting=csv.QUOTE_NONE)
