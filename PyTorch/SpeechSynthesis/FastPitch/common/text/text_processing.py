@@ -146,12 +146,6 @@ class TextProcessing(object):
                         self.get_arpabet(word[0])
                         if (word[0] != '') else word[1]
                         for word in words]
-                    # text_arpabet = []
-                    # for word in words:
-                    #     if word[0] != '':
-                    #         text_arpabet.append(self.get_arpabet(word[0]))
-                    #     else:
-                    #         text_arpabet.append(word[1])
                     text_arpabet = ''.join(text_arpabet)
                     text = text_arpabet #now text is phone sequence of one sentence
                     print(f'sentence arpabet: {text}')
@@ -185,6 +179,7 @@ class TextProcessing(object):
                     else:
                         if np.random.uniform() < self.p_arpabet:
                             arpabet = self.get_arpabet(word[0])
+                            print(f'arpabet: {arpabet}')
                             ta = ''.join(arpabet)
                             print(f'ta:{ta}')
                             te = self.text_to_sequence(ta)
@@ -195,7 +190,6 @@ class TextProcessing(object):
                             print(f'text info: {text_info}')
                         else:
                             text_arpabet += word[0]
-                            print(f'word[0]: {word[0]}')
                             text_encoded += self.text_to_sequence(word[0])
                 return text_encoded, text_info
 
