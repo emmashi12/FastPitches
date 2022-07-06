@@ -279,9 +279,13 @@ class TTSDataset(torch.utils.data.Dataset):
 
     def get_text(self, text):
         #word input, phoneme tensor output
-        text = self.tp.encode_text(text) #see line 190, get a list of a sequence of index representing the text
-        print(f'text len: {len(text)}')
-        space = [self.tp.encode_text("A A")[1]] #get the encoded representation of space
+        if self.cwt_count:
+            text, text_info = self.tp.encode_text(text) #see line 190, get a list of a sequence of index representing the text
+            #print(f'text len: {len(text)}')
+            space = [self.tp.encode_text("A A")[1]] #get the encoded representation of space
+        else:
+            text = self.tp.encode_text(text)
+            space = [self.tp.encode_text("A A")[1]]
 
         if self.prepend_space_to_text:
             text = space + text
