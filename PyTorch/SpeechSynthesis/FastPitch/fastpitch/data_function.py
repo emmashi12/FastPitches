@@ -228,10 +228,15 @@ class TTSDataset(torch.utils.data.Dataset):
         # Separate filename and text
         #-----------modified------------
         if self.n_speakers > 1:
-            audiopath, *extra, text, speaker = self.audiopaths_and_text[index] #modify to key of dictionary
-            speaker = int(speaker)
+            audiopath = self.audiopaths_and_text[index]['wav'] #modify to key of dictionary
+            audiopath = self.dataset_path + audiopath
+            text = self.audiopaths_and_text[index]['text']
+            speaker = self.audiopaths_and_text[index]['speaker']
         else:
-            audiopath, *extra, text = self.audiopaths_and_text[index] #modify to key of dictionary
+            audiopath = self.audiopaths_and_text[index]['wav'] #modify to key of dictionary
+            audiopath = self.dataset_path + audiopath
+            print(f'audiopath: {audiopath}')
+            text = self.audiopaths_and_text[index]['text']
             speaker = None
 
         mel = self.get_mel(audiopath) #method see line 238
