@@ -1,1 +1,2 @@
+wav|text
 wavs/LJ034-0081.wav|Givens thought this was about eleven:fifty-five a.m.
