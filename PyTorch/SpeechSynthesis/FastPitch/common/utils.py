@@ -21,7 +21,7 @@ import librosa
 import numpy as np
 
 import torch
-import csv
+from csv import DictReader
 from scipy.io.wavfile import read
 
 
