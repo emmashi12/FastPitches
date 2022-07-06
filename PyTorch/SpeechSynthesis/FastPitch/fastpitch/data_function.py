@@ -326,6 +326,7 @@ class TTSDataset(torch.utils.data.Dataset):
     def get_pitch(self, index, mel_len=None):
         #-----------modified----------
         audiopath = self.audiopaths_and_text[index]['wav']
+        audiopath = self.dataset_path + '/' + audiopath
 
         if self.n_speakers > 1:
             spk = self.audiopaths_and_text[index]['speaker']
