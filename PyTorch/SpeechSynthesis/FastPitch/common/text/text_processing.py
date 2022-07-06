@@ -130,11 +130,7 @@ class TextProcessing(object):
             text = re.sub(_currency_re, _expand_currency, text)
         text_clean = [self.clean_text(split) if split[0] != '{' else split
                       for split in _arpa_re.findall(text)]
-        # for split in _arpa_re.findall(text):
-        #     if split[0] != '{':
-        #         text_clean = [self.clean_text(split)]
-        #     else:
-        #         text_clean = [split]
+
         text_clean = ' '.join(text_clean)
         text_clean = cleaners.collapse_whitespace(text_clean)
         text = text_clean #get words after cleaning
@@ -194,7 +190,7 @@ class TextProcessing(object):
                             te = self.text_to_sequence(ta)
                             text_arpabet += ta
                             print(f'text arpabet: {text_arpabet}')
-                            text_encoded.append(te)
+                            text_encoded += te
                             text_info.append(len(te))
                             print(f'text info: {text_info}')
                         else:
