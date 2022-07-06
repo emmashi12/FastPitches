@@ -23,7 +23,7 @@ _arpa_re = re.compile(r'{[^}]+}|\S+')
 
 class TextProcessing(object):
     def __init__(self, symbol_set, cleaner_names, p_arpabet=0.0,
-                 handle_arpabet='word', handle_arpabet_ambiguous='random',
+                 handle_arpabet='word', handle_arpabet_ambiguous='first',
                  expand_currency=True, get_count=True):
         self.symbols = get_symbols(symbol_set)
         self.cleaner_names = cleaner_names
@@ -171,7 +171,7 @@ class TextProcessing(object):
                 text_info = []
                 for word in words:
                     if word[0] == '':
-                        text_arpabet += word[1]
+                        text_arpabet.append(word[1])
                         print(text_arpabet)
                         te = self.text_to_sequence(word[1])
                         text_encoded += te
@@ -182,13 +182,13 @@ class TextProcessing(object):
                             ta = self.get_arpabet(word[0])
                             print(f'ta:{ta}')
                             te = self.text_to_sequence(ta)
-                            text_arpabet += ta
+                            text_arpabet.append(ta)
                             print(f'text arpabet: {text_arpabet}')
                             text_encoded += te
                             text_info.append((word[0], len(te)))
                             print(f'text info: {text_info}')
                         else:
-                            text_arpabet += word[0]
+                            text_arpabet.append(word[0])
                             te = self.text_to_sequence(word[0])
                             text_encoded += te
                             text_info.append((word[0], len(te)))
