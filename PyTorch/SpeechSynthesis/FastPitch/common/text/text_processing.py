@@ -168,6 +168,7 @@ class TextProcessing(object):
                         if np.random.uniform() < self.p_arpabet
                         else word[0])
                     for word in words]
+                print(f'ta before join: {text_arpabet}')
                 text_arpabet = ''.join(text_arpabet)
                 text = text_arpabet
                 print(f'word arpabet: {text}')
@@ -191,7 +192,7 @@ class TextProcessing(object):
                             ta = ''.join(arpabet)
                             print(f'ta:{ta}')
                             te = self.text_to_sequence(ta)
-                            text_arpabet.append(ta)
+                            text_arpabet += ta
                             print(f'text arpabet: {text_arpabet}')
                             text_encoded.append(te)
                             text_info.append(len(te))
