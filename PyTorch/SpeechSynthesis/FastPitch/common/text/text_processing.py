@@ -185,6 +185,7 @@ class TextProcessing(object):
                             text_arpabet.append(ta)
                             print(f'text arpabet: {text_arpabet}')
                             text_encoded += te
+                            print(text_encoded)
                             text_info.append((word[0], len(te)))
                             print(f'text info: {text_info}')
                         else:
