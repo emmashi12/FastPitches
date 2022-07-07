@@ -16,7 +16,7 @@ for file in audiopaths_and_text:
     text = file['text']
     cwt = file['prom']
 
-    prom_tensor = torch.load(data_path + cwt)
+    prom_tensor = torch.load(dataset_path + cwt)
 
     sentence, text_info = tp.encode(text)
     characters = re.compile('\w+')
