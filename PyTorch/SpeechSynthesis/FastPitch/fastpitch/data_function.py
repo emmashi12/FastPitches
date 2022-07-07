@@ -147,6 +147,7 @@ class TTSDataset(torch.utils.data.Dataset):
                  n_speakers=1,
                  load_mel_from_disk=True,
                  load_pitch_from_disk=True,
+                 load_cwt_from_disk=True,
                  cwt_count=True,
                  pitch_mean=214.72203,  # LJSpeech defaults
                  pitch_std=65.72038,
@@ -183,7 +184,7 @@ class TTSDataset(torch.utils.data.Dataset):
         self.load_pitch_from_disk = load_pitch_from_disk
 
         #----------load prominence from disk-------------
-        #self.load_prom_from_disk = load_prom_from_disk
+        self.load_cwt_from_disk = load_cwt_from_disk
         self.cwt_count = cwt_count
 
         self.prepend_space_to_text = prepend_space_to_text
@@ -232,6 +233,7 @@ class TTSDataset(torch.utils.data.Dataset):
             audiopath = self.dataset_path + "/" + audiopath
             text = self.audiopaths_and_text[index]['text']
             speaker = self.audiopaths_and_text[index]['speaker']
+            speaker = int(speaker)
         else:
             audiopath = self.audiopaths_and_text[index]['wav'] #modify to key of dictionary
             audiopath = self.dataset_path + "/" + audiopath
@@ -244,9 +246,9 @@ class TTSDataset(torch.utils.data.Dataset):
         print(f'text shape: {text.shape}')
         pitch = self.get_pitch(index, mel.size(-1))
         print(f'pitch shape: {pitch.shape}')
-        #prom = self.get_prom()
         energy = torch.norm(mel.float(), dim=0, p=2)
         attn_prior = self.get_prior(index, mel.shape[1], text.shape[0])
+        prom = self.get_prom_label(index)
         #text_len = text.shape[0]     mel_len = mel.shape[1]
 
         assert pitch.size(-1) == mel.size(-1)
@@ -335,6 +337,7 @@ class TTSDataset(torch.utils.data.Dataset):
 
         if self.load_pitch_from_disk:
             pitchpath = self.audiopaths_and_text[index]['pitch']
+            pitchpath = self.dataset_path + '/' +pitchpath
             pitch = torch.load(pitchpath)
             if self.pitch_mean is not None:
                 assert self.pitch_std is not None
@@ -363,13 +366,13 @@ class TTSDataset(torch.utils.data.Dataset):
 
         return pitch_mel
 
-    # --------get_prominence------------
-    # def get_prom_label(self, index, text_len, ):
-    #     audiopath, *fields = self.audiopaths_and_text[index]
-    #     if self.load_prom_from_disk:
-    #         prompath = fields[1]
-    #         prom = torch.load(prompath)
-    #         return prom
+    #------------get_prominence------------
+    def get_prom_label(self, index, text_len=None):
+        if self.load_prom_from_disk:
+            prompath = self.audiopaths_and_text[index]['prom']
+            prompath = self.dataset_path + '/' + prompath
+            prom = torch.load(prompath)
+            return prom
 
 
 
