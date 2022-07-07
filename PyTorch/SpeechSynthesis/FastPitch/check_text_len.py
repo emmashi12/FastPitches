@@ -12,9 +12,9 @@ log_file = open("incorrect_label.txt", "a")
 
 
 for file in audiopaths_and_text:
-    audiopath = audiopaths_and_text[file]['wav']
-    text = audiopaths_and_text[file]['text']
-    cwt = audiopaths_and_text[file]['prom']
+    audiopath = file['wav']
+    text = file['text']
+    cwt = file['prom']
 
     prom_tensor = torch.load(cwt)
 
