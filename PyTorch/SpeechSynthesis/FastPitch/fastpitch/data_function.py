@@ -368,7 +368,7 @@ class TTSDataset(torch.utils.data.Dataset):
 
     # ------------get_prominence------------
     def get_prom_label(self, index, text_info):
-        if self.load_prom_from_disk:
+        if self.load_cwt_from_disk:
             prompath = self.audiopaths_and_text[index]['prom']
             prompath = self.dataset_path + '/' + prompath
             prom = torch.load(prompath)
