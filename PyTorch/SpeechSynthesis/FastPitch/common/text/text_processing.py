@@ -134,8 +134,8 @@ class TextProcessing(object):
         text_clean = ' '.join(text_clean)
         text_clean = cleaners.collapse_whitespace(text_clean)
         text = text_clean #get words after cleaning
-        print(f"Clean Text: {text_clean}")
-        print(type(text_clean))
+        #print(f"Clean Text: {text_clean}")
+        #print(type(text_clean))
 
         text_arpabet = ''
         if self.p_arpabet > 0:
@@ -165,7 +165,7 @@ class TextProcessing(object):
 
             elif self.handle_arpabet == 'word' and self.get_count is True:
                 words = _words_re.findall(text)
-                print(f'word structure: {words}') #format [('word', ''), ('', ' ')]
+                #print(f'word structure: {words}') #format [('word', ''), ('', ' ')]
                 text_arpabet = []
                 text_encoded = []
                 text_info = []
@@ -185,9 +185,9 @@ class TextProcessing(object):
                             text_arpabet.append(ta)
                             #print(f'text arpabet: {text_arpabet}')
                             text_encoded += te
-                            print(text_encoded)
+                            #print(text_encoded)
                             text_info.append((word[0], len(te)))
-                            print(f'text info: {text_info}')
+                            #print(f'text info: {text_info}')
                         else:
                             text_arpabet.append(word[0])
                             te = self.text_to_sequence(word[0])
