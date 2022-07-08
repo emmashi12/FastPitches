@@ -381,7 +381,7 @@ class TTSDataset(torch.utils.data.Dataset):
             non_words = re.compile('\W+')  # match for non-words
             cwt_index = 0
 
-            for i in text_info:
+            for i in text_symbols:
                 if non_words.search(text_words[i]):  # append cwt label for non-words
                     upsampled += [0] * text_symbols[i]
                 else:
