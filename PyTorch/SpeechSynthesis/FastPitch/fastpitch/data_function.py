@@ -366,14 +366,23 @@ class TTSDataset(torch.utils.data.Dataset):
 
         return pitch_mel
 
-    #------------get_prominence------------
-    def get_prom_label(self, index, text_len=None):
-        if self.load_prom_from_disk:
-            prompath = self.audiopaths_and_text[index]['prom']
-            prompath = self.dataset_path + '/' + prompath
-            prom = torch.load(prompath)
-            return prom
-
+    # ------------get_prominence------------
+    # def get_prom_label(self, index, text_info):
+    #     if self.load_prom_from_disk:
+    #         prompath = self.audiopaths_and_text[index]['prom']
+    #         prompath = self.dataset_path + '/' + prompath
+    #         prom = torch.load(prompath)
+    #         cwt_list = prom.tolist()
+    #
+    #         upsampled = []
+    #         for i,j in zip(cwt_list, text_info):
+    #             print(i, j[1])
+    #             i = [i] * j[1]
+    #             print(i)
+    #             upsampled.append(i)
+    #         print(upsampled)
+    #         cwt_tensor = torch.Tensor(upsampled)
+    #         return cwt_tensor
 
 
 class TTSCollate:
