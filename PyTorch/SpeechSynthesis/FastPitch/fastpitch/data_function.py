@@ -377,6 +377,7 @@ class TTSDataset(torch.utils.data.Dataset):
             text_symbols = [x[1] for x in text_info]
             text_words = [x[0] for x in text_info]
             total_symbols = sum(text_symbols)
+            print(total_symbols)
             upsampled = []
             non_words = re.compile('\W+')  # match for non-words
             cwt_index = 0
@@ -390,6 +391,7 @@ class TTSDataset(torch.utils.data.Dataset):
                     cwt_index += 1
 
             print(upsampled)
+            print(len(upsampled))
             cwt_tensor = torch.Tensor(upsampled)  # convert back to tensor
             assert list(cwt_tensor.size())[0] == total_symbols
 
