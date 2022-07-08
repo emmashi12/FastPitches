@@ -385,7 +385,7 @@ class TTSDataset(torch.utils.data.Dataset):
             words = re.compile('\w+')  # match for words
             cwt_index = 0
 
-            for string, i in enumerate(text_words):
+            for i, string in enumerate(text_words):
                 if words.search(text_words[i]):  # upsample cwt label
                     t = [cwt_list[cwt_index]] * text_symbols[i]
                     upsampled += t
