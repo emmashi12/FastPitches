@@ -367,22 +367,33 @@ class TTSDataset(torch.utils.data.Dataset):
         return pitch_mel
 
     # ------------get_prominence------------
-    # def get_prom_label(self, index, text_info):
-    #     if self.load_prom_from_disk:
-    #         prompath = self.audiopaths_and_text[index]['prom']
-    #         prompath = self.dataset_path + '/' + prompath
-    #         prom = torch.load(prompath)
-    #         cwt_list = prom.tolist()
-    #
-    #         upsampled = []
-    #         for i,j in zip(cwt_list, text_info):
-    #             print(i, j[1])
-    #             i = [i] * j[1]
-    #             print(i)
-    #             upsampled.append(i)
-    #         print(upsampled)
-    #         cwt_tensor = torch.Tensor(upsampled)
-    #         return cwt_tensor
+    def get_prom_label(self, index, text_info):
+        if self.load_prom_from_disk:
+            prompath = self.audiopaths_and_text[index]['prom']
+            prompath = self.dataset_path + '/' + prompath
+            prom = torch.load(prompath)
+            cwt_list = prom.tolist()
+
+            total_symbols = [x[1] for x in text_info]
+            total_symbols = sum(total_symbols)
+            upsampled = []
+            non_words = re.compile('\W+')  # match for non-words
+            cwt_index = 0
+
+            for i in text_info:
+                print(total_symbols[i])
+                if non_words.search(text_info[i][0]):  # append cwt label for non-words
+                    upsampled += [0] * text_info[i][1]
+                else:
+                    t = [cwt_list[cwt_index]] * text_info[i][1]  # upsample cwt label
+                    upsampled += t
+                    cwt_index += 1
+
+            print(upsampled)
+            cwt_tensor = torch.Tensor(upsampled)  # convert back to tensor
+            assert list(cwt_tensor.size())[0] == total_symbols
+
+            return cwt_tensor
 
 
 class TTSCollate:

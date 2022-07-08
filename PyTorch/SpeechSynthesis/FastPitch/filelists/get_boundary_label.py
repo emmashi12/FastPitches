@@ -21,9 +21,9 @@ def get_boundary_label(value):
 
 def get_prominence_label(value, data):
     if value == data:
-        return 1
+        return 2
     else:
-        return 0
+        return 1
 
 
 def write_csv_file(out_filepath, data):
