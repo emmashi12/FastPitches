@@ -373,18 +373,21 @@ class TTSDataset(torch.utils.data.Dataset):
             prompath = self.dataset_path + '/' + prompath
             prom = torch.load(prompath)
             cwt_list = prom.tolist()
+            print(cwt_list)
 
             text_symbols = [x[1] for x in text_info]
             text_words = [x[0] for x in text_info]
             total_symbols = sum(text_symbols)
             print(total_symbols)
+
             upsampled = []
             non_words = re.compile('\W+')  # match for non-words
             cwt_index = 0
 
             for i in text_symbols:
                 if non_words.search(text_words[i]):  # append cwt label for non-words
-                    upsampled += [0] * text_symbols[i]
+                    t = [0] * text_symbols[i]
+                    upsampled += t
                 else:
                     t = [cwt_list[cwt_index]] * text_symbols[i]  # upsample cwt label
                     upsampled += t
@@ -393,6 +396,7 @@ class TTSDataset(torch.utils.data.Dataset):
             print(upsampled)
             print(len(upsampled))
             cwt_tensor = torch.Tensor(upsampled)  # convert back to tensor
+            print(cwt_tensor)
             assert list(cwt_tensor.size())[0] == total_symbols
 
             return cwt_tensor
