@@ -248,7 +248,7 @@ class TTSDataset(torch.utils.data.Dataset):
         print(f'pitch shape: {pitch.shape}')
         energy = torch.norm(mel.float(), dim=0, p=2)
         attn_prior = self.get_prior(index, mel.shape[1], text.shape[0])
-        prom = self.get_prom_label(index)
+        cwt_tensor = self.get_prom_label(index, text_info)
         #text_len = text.shape[0]     mel_len = mel.shape[1]
 
         assert pitch.size(-1) == mel.size(-1)
@@ -258,7 +258,7 @@ class TTSDataset(torch.utils.data.Dataset):
         if len(pitch.size()) == 1:
             pitch = pitch[None, :]
 
-        return (text, text_info, mel, len(text), pitch, energy, speaker, attn_prior,
+        return (text, text_info, mel, len(text), pitch, energy, cwt_tensor, speaker, attn_prior,
                 audiopath) #----------modify-----------add prom
 
     def __len__(self):
