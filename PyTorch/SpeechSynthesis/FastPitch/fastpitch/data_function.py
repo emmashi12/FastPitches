@@ -258,7 +258,7 @@ class TTSDataset(torch.utils.data.Dataset):
         if len(pitch.size()) == 1:
             pitch = pitch[None, :]
 
-        return (text, mel, len(text), pitch, energy, speaker, attn_prior,
+        return (text, text_info, mel, len(text), pitch, energy, speaker, attn_prior,
                 audiopath) #----------modify-----------add prom
 
     def __len__(self):
