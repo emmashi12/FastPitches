@@ -375,6 +375,7 @@ class TTSDataset(torch.utils.data.Dataset):
             cwt_list = prom.tolist()
             print(cwt_list)
             print(f'text info: {text_info}')
+
             text_symbols = [x[1] for x in text_info]
             text_words = [x[0] for x in text_info]
             total_symbols = sum(text_symbols)
@@ -384,7 +385,7 @@ class TTSDataset(torch.utils.data.Dataset):
             words = re.compile('\w+')  # match for words
             cwt_index = 0
 
-            for i in text_symbols:
+            for string, i in enumerate(text_words):
                 if words.search(text_words[i]):  # upsample cwt label
                     t = [cwt_list[cwt_index]] * text_symbols[i]
                     upsampled += t
