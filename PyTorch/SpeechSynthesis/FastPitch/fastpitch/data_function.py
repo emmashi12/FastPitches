@@ -374,7 +374,7 @@ class TTSDataset(torch.utils.data.Dataset):
             prom = torch.load(prompath)
             cwt_list = prom.tolist()
             print(cwt_list)
-
+            print(f'text info: {text_info}')
             text_symbols = [x[1] for x in text_info]
             text_words = [x[0] for x in text_info]
             total_symbols = sum(text_symbols)
@@ -396,7 +396,7 @@ class TTSDataset(torch.utils.data.Dataset):
             print(upsampled)
             print(len(upsampled))
             cwt_tensor = torch.Tensor(upsampled)  # convert back to tensor
-            print(cwt_tensor)
+            #print(cwt_tensor)
             assert list(cwt_tensor.size())[0] == total_symbols
 
             return cwt_tensor
