@@ -127,6 +127,10 @@ class FastPitch(nn.Module):
                  energy_predictor_kernel_size, energy_predictor_filter_size,
                  p_energy_predictor_dropout, energy_predictor_n_layers,
                  energy_embedding_kernel_size,
+                 cwt_conditioning,
+                 cwt_predictor_kernel_size, cwt_predictor_filter_size,
+                 p_cwt_predictor_dropout, cwt_predictor_n_layers,
+                 cwt_emb_weight,
                  n_speakers, speaker_emb_weight, pitch_conditioning_formants=1):
         super(FastPitch, self).__init__()
 
@@ -177,15 +181,29 @@ class FastPitch(nn.Module):
             dropout=p_pitch_predictor_dropout, n_layers=pitch_predictor_n_layers,
             n_predictions=pitch_conditioning_formants
         )
+        # (in_fft_output_size=384, filter_size=256, kernel_size=3, dropout=0.1, n_layers=2, n_predictions=1)
 
         self.pitch_emb = nn.Conv1d(
             pitch_conditioning_formants, symbols_embedding_dim,
             kernel_size=pitch_embedding_kernel_size,
             padding=int((pitch_embedding_kernel_size - 1) / 2))
+        # (1, symbols_embedding_dim=384, kernel_size=3, padding=1)
 
         # Store values precomputed for training data within the model
         self.register_buffer('pitch_mean', torch.zeros(1))
         self.register_buffer('pitch_std', torch.zeros(1))
+
+        #-------------modified--------------
+        self.cwt_conditioning = cwt_conditioning
+        if cwt_conditioning:
+            self.cwt_predictor = TemporalPredictor(
+                in_fft_output_size,
+                filter_size=cwt_predictor_filter_size,
+                kernel_size=cwt_predictor_kernel_size,
+                dropout=p_cwt_predictor_dropout, n_layers=cwt_predictor_n_layers)
+
+            self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)
+            self.cwt_emb_weight = cwt_emb_weight
 
         self.energy_conditioning = energy_conditioning
         if energy_conditioning:
@@ -243,7 +261,7 @@ class FastPitch(nn.Module):
     def forward(self, inputs, use_gt_pitch=True, pace=1.0, max_duration=75):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
-         speaker, attn_prior, audiopaths) = inputs
+         speaker, attn_prior, audiopaths) = inputs #--------modify--------
 
         mel_max_len = mel_tgt.size(2)
 
@@ -279,10 +297,10 @@ class FastPitch(nn.Module):
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
-        dur_pred = torch.clamp(torch.exp(log_dur_pred) - 1, 0, max_duration)
+        dur_pred = torch.clamp(torch.exp(log_dur_pred) - 1, 0, max_duration) #----------modify---------- (add prom in this step)
 
         # Predict pitch
-        pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1)
+        pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1) #----------modify---------- (add prom in this step)
 
         # Average pitch over characters
         pitch_tgt = average_pitch(pitch_dense, dur_tgt)

@@ -1,16 +1,27 @@
 import glob, os
 import pandas as pd
 import torch
+from pathlib import Path
 
-# def get_cwt_torch(in_filepath=None):
-#     os.chdir(in_filepath)
-#     for file in glob.glob("*.prom")
+def get_cwt_tensor(file, outpath):
+    fname = Path(file).with_suffix('.pt').name
+    fpath = Path(outpath, fname)
+    tst = pd.read_csv(file, delimiter='\t')
+    #print(tst)
+    prom = tst['p_label'].to_list()
+    #print(prom)
+    p_tensor = torch.Tensor(prom)
+    print(p_tensor)
+    torch.save(p_tensor, fpath)
 
 
-tst = pd.read_csv('./filelists/labelled_file/LJ001-0110.prom', delimiter='\t')
-print(tst)
-prom = tst['p_label'].to_list()
-print(prom)
+in_filepath = '/Users/emmashi/Desktop/labelled_file'
+os.chdir(in_filepath)
+head, tail = os.path.split(in_filepath)
 
-p_tensor = torch.Tensor(prom)
-print(p_tensor)
+out_filepath = head + '/prom_tensor/'
+os.makedirs(out_filepath, exist_ok=True)
+
+for file in glob.glob("*.prom"):
+    get_cwt_tensor(file, out_filepath)
+

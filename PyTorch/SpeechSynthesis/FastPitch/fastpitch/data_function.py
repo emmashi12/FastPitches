@@ -258,8 +258,8 @@ class TTSDataset(torch.utils.data.Dataset):
         if len(pitch.size()) == 1:
             pitch = pitch[None, :]
 
-        return (text, text_info, mel, len(text), pitch, energy, cwt_tensor, speaker, attn_prior,
-                audiopath) #----------modify-----------add prom
+        return (text, mel, len(text), pitch, energy, speaker, attn_prior,
+                audiopath, cwt_tensor) #----------modify-----------add prom
 
     def __len__(self):
         return len(self.audiopaths_and_text)
@@ -406,6 +406,8 @@ class TTSDataset(torch.utils.data.Dataset):
 class TTSCollate:
     """Zero-pads model inputs and targets based on number of frames per step"""
 
+    #return (text, mel, len(text), pitch, energy, speaker, attn_prior, audiopath, cwt_tensor)
+
     def __call__(self, batch):
         """Collate training batch from normalized text and mel-spec"""
         # Right zero-pad all one-hot text sequences to max input length
@@ -419,6 +421,8 @@ class TTSCollate:
         for i in range(len(ids_sorted_decreasing)):
             text = batch[ids_sorted_decreasing[i]][0]
             text_padded[i, :text.size(0)] = text
+
+        cwt_padded = torch.FloatTensor(len(batch))
 
         # Right zero-pad mel-spec
         num_mels = batch[0][1].size(0)
