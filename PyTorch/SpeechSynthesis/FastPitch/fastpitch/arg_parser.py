@@ -119,6 +119,18 @@ def parse_fastpitch_args(parent, add_help=False):
     energy_pred.add_argument('--energy-predictor-n-layers', default=2, type=int,
                             help='Number of conv-1D layers')
 
+    #-----------modified-----------
+    cwt_pred = parser.add_argument_group('cwt predictor parameters')
+    cwt_pred.add_argument('--cwt-predictor-kernel-size', default=3, type=int,
+                             help='Pitch predictor conv-1D kernel size')
+    cwt_pred.add_argument('--cwt-predictor-filter-size', default=256, type=int,
+                             help='Pitch predictor conv-1D filter size')
+    cwt_pred.add_argument('--p-cwt-predictor-dropout', default=0.1, type=float,
+                             help='Pitch probability for energy predictor')
+    cwt_pred.add_argument('--cwt-predictor-n-layers', default=2, type=int,
+                             help='Number of conv-1D layers')
+
+
     cond = parser.add_argument_group('conditioning parameters')
     cond.add_argument('--pitch-embedding-kernel-size', default=3, type=int,
                       help='Pitch embedding conv-1D kernel size')
@@ -126,5 +138,6 @@ def parse_fastpitch_args(parent, add_help=False):
                       help='Pitch embedding conv-1D kernel size')
     cond.add_argument('--speaker-emb-weight', type=float, default=1.0,
                       help='Scale speaker embedding')
+    #cond.add_argument('--cwt-emb-weight', type=fload,)
 
     return parser
