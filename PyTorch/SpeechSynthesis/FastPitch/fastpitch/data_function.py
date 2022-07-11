@@ -250,7 +250,7 @@ class TTSDataset(torch.utils.data.Dataset):
         energy = torch.norm(mel.float(), dim=0, p=2)
         attn_prior = self.get_prior(index, mel.shape[1], text.shape[0])
         cwt_tensor = self.get_prom_label(index, text_info)
-        print(f'cwt shape: {cwt_tensor}')
+        print(f'cwt shape: {cwt_tensor.shape}')
         #text_len = text.shape[0]     mel_len = mel.shape[1]
 
         assert pitch.size(-1) == mel.size(-1)
