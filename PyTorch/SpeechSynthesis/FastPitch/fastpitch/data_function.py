@@ -242,6 +242,7 @@ class TTSDataset(torch.utils.data.Dataset):
             speaker = None
 
         mel = self.get_mel(audiopath) #method see line 238
+        print(f'mel shape: {mel.shape}')
         text, text_info = self.get_text(text)
         print(f'text shape: {text.shape}')
         pitch = self.get_pitch(index, mel.size(-1))
@@ -423,11 +424,13 @@ class TTSCollate:
             text = batch[ids_sorted_decreasing[i]][0]
             text_padded[i, :text.size(0)] = text
 
-        # padding for prominence label tensor
-        num_cwt = batch[0][8].shape[0]
+        # padding for prominence label tensor -------------modified---------------
+        num_cwt = batch[0][8].size(0)
         cwt_padded = torch.FloatTensor(len(batch), num_cwt)
         cwt_padded.zero_()
-        
+        # for i in range(len(ids_sorted_decreasing)):
+        #     cwt = batch[ids_sorted_decreasing[i]][8]
+        #     cwt_padded[i, ] = cwt
 
         # Right zero-pad mel-spec
         num_mels = batch[0][1].size(0)
