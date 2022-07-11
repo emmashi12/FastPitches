@@ -258,7 +258,7 @@ class FastPitch(nn.Module):
                              out_lens.cpu().numpy(), width=1)
         return torch.from_numpy(attn_out).to(attn.get_device())
 
-    def forward(self, inputs, use_gt_pitch=True, pace=1.0, max_duration=75):
+    def forward(self, inputs, use_gt_pitch=True, use_gt_cwt=True, pace=1.0, max_duration=75):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
          speaker, attn_prior, audiopaths) = inputs #--------modify--------
@@ -294,6 +294,12 @@ class FastPitch(nn.Module):
         dur_tgt = attn_hard_dur
 
         assert torch.all(torch.eq(dur_tgt.sum(dim=1), mel_lens))
+
+        # Predict prominence -------------modified------------
+        cwt_pred = self.cwt_predictor(enc_out, enc_mask)
+        cwt_tgt =
+        if use_gt_cwt and cwt_tgt is not None:
+            cwt_emb =
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)

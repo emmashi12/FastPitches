@@ -237,7 +237,7 @@ class TTSDataset(torch.utils.data.Dataset):
         else:
             audiopath = self.audiopaths_and_text[index]['wav'] #modify to key of dictionary
             audiopath = self.dataset_path + "/" + audiopath
-            print(f'audiopath: {audiopath}')
+            #print(f'audiopath: {audiopath}')
             text = self.audiopaths_and_text[index]['text']
             speaker = None
 
@@ -249,6 +249,7 @@ class TTSDataset(torch.utils.data.Dataset):
         energy = torch.norm(mel.float(), dim=0, p=2)
         attn_prior = self.get_prior(index, mel.shape[1], text.shape[0])
         cwt_tensor = self.get_prom_label(index, text_info)
+        print(f'cwt shape: {cwt_tensor}')
         #text_len = text.shape[0]     mel_len = mel.shape[1]
 
         assert pitch.size(-1) == mel.size(-1)
@@ -259,7 +260,7 @@ class TTSDataset(torch.utils.data.Dataset):
             pitch = pitch[None, :]
 
         return (text, mel, len(text), pitch, energy, speaker, attn_prior,
-                audiopath, cwt_tensor) #----------modify-----------add prom
+                audiopath, cwt_tensor)  #----------modify-----------add prom
 
     def __len__(self):
         return len(self.audiopaths_and_text)
@@ -422,7 +423,11 @@ class TTSCollate:
             text = batch[ids_sorted_decreasing[i]][0]
             text_padded[i, :text.size(0)] = text
 
-        cwt_padded = torch.FloatTensor(len(batch))
+        # padding for prominence label tensor
+        num_cwt = batch[0][8].shape[0]
+        cwt_padded = torch.FloatTensor(len(batch), num_cwt)
+        cwt_padded.zero_()
+        
 
         # Right zero-pad mel-spec
         num_mels = batch[0][1].size(0)
