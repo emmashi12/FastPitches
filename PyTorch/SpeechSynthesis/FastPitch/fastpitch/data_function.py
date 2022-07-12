@@ -393,7 +393,7 @@ class TTSDataset(torch.utils.data.Dataset):
                     upsampled += t
                     cwt_index += 1
                 else:
-                    t = [0] * text_symbols[i]  # upsample cwt label for non-words
+                    t = [0.0] * text_symbols[i]  # upsample cwt label for non-words
                     upsampled += t
 
             print(upsampled)
@@ -428,9 +428,9 @@ class TTSCollate:
         num_cwt = batch[0][8].size(0)
         cwt_padded = torch.FloatTensor(len(batch), num_cwt)
         cwt_padded.zero_()
-        # for i in range(len(ids_sorted_decreasing)):
-        #     cwt = batch[ids_sorted_decreasing[i]][8]
-        #     cwt_padded[i, ] = cwt
+        for i in range(len(ids_sorted_decreasing)):
+            cwt = batch[ids_sorted_decreasing[i]][8]
+            cwt_padded[i, :cwt.size(0)] = cwt
 
         # Right zero-pad mel-spec
         num_mels = batch[0][1].size(0)
@@ -476,13 +476,13 @@ class TTSCollate:
 
         audiopaths = [batch[i][7] for i in ids_sorted_decreasing]
 
-        return (text_padded, input_lengths, mel_padded, output_lengths, len_x,
+        return (text_padded, input_lengths, cwt_padded, mel_padded, output_lengths, len_x,
                 pitch_padded, energy_padded, speaker, attn_prior_padded,
                 audiopaths)
 
 
 def batch_to_gpu(batch):
-    (text_padded, input_lengths, mel_padded, output_lengths, len_x,
+    (text_padded, input_lengths, cwt_padded, mel_padded, output_lengths, len_x,
      pitch_padded, energy_padded, speaker, attn_prior, audiopaths) = batch
 
     text_padded = to_gpu(text_padded).long()
@@ -492,12 +492,13 @@ def batch_to_gpu(batch):
     pitch_padded = to_gpu(pitch_padded).float()
     energy_padded = to_gpu(energy_padded).float()
     attn_prior = to_gpu(attn_prior).float()
+    cwt_padded = to_gpu(cwt_padded).float() #----------modified-----------
     if speaker is not None:
         speaker = to_gpu(speaker).long()
 
     # Alignments act as both inputs and targets - pass shallow copies
-    x = [text_padded, input_lengths, mel_padded, output_lengths,
-         pitch_padded, energy_padded, speaker, attn_prior, audiopaths]
+    x = [text_padded, input_lengths, cwt_padded, mel_padded, output_lengths,
+         pitch_padded, energy_padded, speaker, attn_prior, audiopaths] #----------modified-----------
     y = [mel_padded, input_lengths, output_lengths]
     len_x = torch.sum(output_lengths)
     return (x, y, len_x)

@@ -366,7 +366,7 @@ def plot_batch_mels(pred_tgt_lists, rank):
 
 
 def log_validation_batch(x, y_pred, rank):
-    x_fields = ['text_padded', 'input_lengths', 'mel_padded',
+    x_fields = ['text_padded', 'input_lengths', 'cwt_padded', 'mel_padded',
                 'output_lengths', 'pitch_padded', 'energy_padded',
                 'speaker', 'attn_prior', 'audiopaths']
     y_pred_fields = ['mel_out', 'dec_mask', 'dur_pred', 'log_dur_pred',
@@ -404,6 +404,7 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
         for i, batch in enumerate(val_loader):
             # x = (inputs, input_lens, mel_tgt, mel_lens, pitch_dense,
             # energy_dense, spectral_tilt_dense, speaker, attn_prior, audiopaths)
+            # x = [text_padded, input_lengths, cwt_padded, mel_padded, output_lengths, pitch_padded, energy_padded, speaker, attn_prior, audiopaths]
             x, y, num_frames = batch_to_gpu(batch)
             # (mel_out, dec_mask, dur_pred, log_dur_pred,
             #  pitch_pred, pitch_tgt, energy_pred, energy_tgt,
