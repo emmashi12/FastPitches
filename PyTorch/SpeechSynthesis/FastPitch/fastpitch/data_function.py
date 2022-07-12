@@ -426,11 +426,13 @@ class TTSCollate:
 
         # padding for prominence label tensor -------------modified---------------
         num_cwt = batch[0][8].size(0)
+        print(f'num_cwt: {num_cwt}')
         cwt_padded = torch.FloatTensor(len(batch), num_cwt)
         cwt_padded.zero_()
         for i in range(len(ids_sorted_decreasing)):
             cwt = batch[ids_sorted_decreasing[i]][8]
-            cwt_padded[i, :cwt.size(0)] = cwt
+            cwt_padded[i, :cwt.shape[0]] = cwt
+        print(f'cwt_padded: {cwt_padded}')
 
         # Right zero-pad mel-spec
         num_mels = batch[0][1].size(0)

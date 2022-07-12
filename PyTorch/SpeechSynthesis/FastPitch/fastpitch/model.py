@@ -258,7 +258,7 @@ class FastPitch(nn.Module):
 
     def forward(self, inputs, use_gt_pitch=True, use_gt_cwt=True, pace=1.0, max_duration=75):
 
-        (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
+        (inputs, input_lens, cwt_tgt, mel_tgt, mel_lens, pitch_dense, energy_dense,
          speaker, attn_prior, audiopaths) = inputs #--------modify--------
 
         mel_max_len = mel_tgt.size(2)
