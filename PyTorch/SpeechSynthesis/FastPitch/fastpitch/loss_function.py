@@ -36,18 +36,20 @@ from fastpitch.attn_loss_function import AttentionCTCLoss
 class FastPitchLoss(nn.Module):
     def __init__(self, dur_predictor_loss_scale=1.0,
                  pitch_predictor_loss_scale=1.0, attn_loss_scale=1.0,
-                 energy_predictor_loss_scale=0.1):
+                 energy_predictor_loss_scale=0.1,
+                 cwt_predictor_loss_scale=1.0):
         super(FastPitchLoss, self).__init__()
         self.dur_predictor_loss_scale = dur_predictor_loss_scale
         self.pitch_predictor_loss_scale = pitch_predictor_loss_scale
         self.energy_predictor_loss_scale = energy_predictor_loss_scale
+        self.cwt_predictor_loss_scale = cwt_predictor_loss_scale
         self.attn_loss_scale = attn_loss_scale
         self.attn_ctc_loss = AttentionCTCLoss()
 
     def forward(self, model_out, targets, is_training=True, meta_agg='mean'):
         (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred, pitch_tgt,
          energy_pred, energy_tgt, attn_soft, attn_hard, attn_dur,
-         attn_logprob) = model_out
+         attn_logprob) = model_out #from forward() in model.py
 
         (mel_tgt, in_lens, out_lens, cwt_tgt) = targets  #--------modified-----------
 
@@ -76,7 +78,9 @@ class FastPitchLoss(nn.Module):
         pitch_loss = F.mse_loss(pitch_tgt, pitch_pred, reduction='none')
         pitch_loss = (pitch_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
 
-        #write
+        #write loss function for cwt
+        if cwt_pred is not None:
+
         if energy_pred is not None:
             energy_pred = F.pad(energy_pred, (0, ldiff, 0, 0), value=0.0)
             energy_loss = F.mse_loss(energy_tgt, energy_pred, reduction='none')
