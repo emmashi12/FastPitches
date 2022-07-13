@@ -148,7 +148,7 @@ class TTSDataset(torch.utils.data.Dataset):
                  load_mel_from_disk=True,
                  load_pitch_from_disk=True,
                  load_cwt_from_disk=True,
-                 cwt_count=True,
+                 cwt_label=True,
                  pitch_mean=214.72203,  # LJSpeech defaults
                  pitch_std=65.72038,
                  max_wav_value=None,
@@ -185,7 +185,7 @@ class TTSDataset(torch.utils.data.Dataset):
 
         #----------load prominence from disk-------------
         self.load_cwt_from_disk = load_cwt_from_disk
-        self.cwt_count = cwt_count
+        self.cwt_label = cwt_label
 
         self.prepend_space_to_text = prepend_space_to_text
         self.append_space_to_text = append_space_to_text
@@ -194,7 +194,7 @@ class TTSDataset(torch.utils.data.Dataset):
             'Only 0.0 and 1.0 p_arpabet is currently supported. '
             'Variable probability breaks caching of betabinomial matrices.')
 
-        if self.cwt_count is True:
+        if self.cwt_label is True:
             self.tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=True)
         else:
             self.tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=False)
@@ -249,8 +249,11 @@ class TTSDataset(torch.utils.data.Dataset):
         print(f'pitch shape: {pitch.shape}')
         energy = torch.norm(mel.float(), dim=0, p=2)
         attn_prior = self.get_prior(index, mel.shape[1], text.shape[0])
-        cwt_tensor = self.get_prom_label(index, text_info)
-        print(f'cwt shape: {cwt_tensor.shape}')
+        if self.cwt_label:
+            cwt_tensor = self.get_prom_label(index, text_info)
+            print(f'cwt shape: {cwt_tensor.shape}')
+        else:
+            cwt_tensor = None
         #text_len = text.shape[0]     mel_len = mel.shape[1]
 
         assert pitch.size(-1) == mel.size(-1)
@@ -425,14 +428,17 @@ class TTSCollate:
             text_padded[i, :text.size(0)] = text
 
         # padding for prominence label tensor -------------modified---------------
-        num_cwt = batch[0][8].size(0)
-        print(f'num_cwt: {num_cwt}')
-        cwt_padded = torch.FloatTensor(len(batch), num_cwt)
-        cwt_padded.zero_()
-        for i in range(len(ids_sorted_decreasing)):
-            cwt = batch[ids_sorted_decreasing[i]][8]
-            cwt_padded[i, :cwt.shape[0]] = cwt
-        print(f'cwt_padded: {cwt_padded}')
+        #num_cwt = batch[0][8].size(0)
+        #print(f'num_cwt: {num_cwt}')
+        if batch[0][8] is not None:
+            cwt_padded = torch.FloatTensor(len(batch), max_input_len)
+            cwt_padded.zero_()
+            for i in range(len(ids_sorted_decreasing)):
+                cwt = batch[ids_sorted_decreasing[i]][8]
+                cwt_padded[i, :cwt.shape[0]] = cwt
+            print(f'cwt_padded: {cwt_padded}')
+        else:
+            cwt_padded = None
 
         # Right zero-pad mel-spec
         num_mels = batch[0][1].size(0)
@@ -478,14 +484,14 @@ class TTSCollate:
 
         audiopaths = [batch[i][7] for i in ids_sorted_decreasing]
 
-        return (text_padded, input_lengths, cwt_padded, mel_padded, output_lengths, len_x,
+        return (text_padded, input_lengths, mel_padded, output_lengths, len_x,
                 pitch_padded, energy_padded, speaker, attn_prior_padded,
-                audiopaths)
+                audiopaths, cwt_padded)  #---------modified------------
 
 
 def batch_to_gpu(batch):
-    (text_padded, input_lengths, cwt_padded, mel_padded, output_lengths, len_x,
-     pitch_padded, energy_padded, speaker, attn_prior, audiopaths) = batch
+    (text_padded, input_lengths, mel_padded, output_lengths, len_x,
+     pitch_padded, energy_padded, speaker, attn_prior, audiopaths, cwt_padded) = batch  #--------modified---------
 
     text_padded = to_gpu(text_padded).long()
     input_lengths = to_gpu(input_lengths).long()
@@ -494,13 +500,13 @@ def batch_to_gpu(batch):
     pitch_padded = to_gpu(pitch_padded).float()
     energy_padded = to_gpu(energy_padded).float()
     attn_prior = to_gpu(attn_prior).float()
-    cwt_padded = to_gpu(cwt_padded).float() #----------modified-----------
+    cwt_padded = to_gpu(cwt_padded).float()  #----------modified-----------
     if speaker is not None:
         speaker = to_gpu(speaker).long()
 
     # Alignments act as both inputs and targets - pass shallow copies
-    x = [text_padded, input_lengths, cwt_padded, mel_padded, output_lengths,
-         pitch_padded, energy_padded, speaker, attn_prior, audiopaths] #----------modified-----------
-    y = [mel_padded, input_lengths, output_lengths]
+    x = [text_padded, input_lengths, mel_padded, output_lengths,
+         pitch_padded, energy_padded, speaker, attn_prior, audiopaths, cwt_padded]
+    y = [mel_padded, input_lengths, output_lengths, cwt_padded] #something we predict in the model
     len_x = torch.sum(output_lengths)
     return (x, y, len_x)

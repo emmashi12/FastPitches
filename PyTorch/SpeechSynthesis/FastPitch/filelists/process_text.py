@@ -22,7 +22,7 @@ def extract_text(infile="ljs_audio_text.txt", outfile=None):
                     f.write('{}'.format(text))
 
 
-def add_column(infile="ljs_audio_pitch_text_train_v3.txt", outfile=None):
+def add_column(infile="ljs_audio_pitch_text_val.txt", outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     with open(infile) as file:
         for l in file:
@@ -36,7 +36,7 @@ def add_column(infile="ljs_audio_pitch_text_train_v3.txt", outfile=None):
             #print(rewrite)
             if outfile:
                 os.chdir(out_filepath)
-                with open("ljs_audio_pitch_prom_text_train_v3.txt", 'a') as f:
+                with open("ljs_audio_pitch_prom_text_val.txt", 'a') as f:
                     f.write('{}\n'.format(rewrite))
 
 
@@ -61,18 +61,18 @@ def remove_wav(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_train_v3
 
 
 #extract_text(outfile=True)
-#add_column(outfile=True)
+add_column(outfile=True)
 #remove_wav(outfile=True)
 
-print([5] * 4)
-x = [5]
-print(x * 4)
-y = [x] * 4
-print(y)
-
-a = [0, 1]
-text_info = [('how', 2), ('are', 3), (' ', 1)]
-b = []
-total_symbols = [x[1] for x in text_info]
-print(total_symbols)
-punc = re.compile('\W+')
+# print([5] * 4)
+# x = [5]
+# print(x * 4)
+# y = [x] * 4
+# print(y)
+#
+# a = [0, 1]
+# text_info = [('how', 2), ('are', 3), (' ', 1)]
+# b = []
+# total_symbols = [x[1] for x in text_info]
+# print(total_symbols)
+# punc = re.compile('\W+')

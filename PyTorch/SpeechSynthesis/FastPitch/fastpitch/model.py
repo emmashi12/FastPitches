@@ -195,12 +195,15 @@ class FastPitch(nn.Module):
         #-------------modified--------------
         self.cwt_conditioning = cwt_conditioning
         if cwt_conditioning:
+            print("Prominence Predictor")
             self.cwt_predictor = TemporalPredictor(
                 in_fft_output_size,
                 filter_size=cwt_predictor_filter_size,
                 kernel_size=cwt_predictor_kernel_size,
-                dropout=p_cwt_predictor_dropout, n_layers=cwt_predictor_n_layers, n_predictions=1)
-
+                dropout=p_cwt_predictor_dropout,
+                n_layers=cwt_predictor_n_layers,
+                n_predictions=1)
+            print("cwt embedding")
             self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)
 
         self.energy_conditioning = energy_conditioning
@@ -227,7 +230,7 @@ class FastPitch(nn.Module):
 
     def binarize_attention(self, attn, in_lens, out_lens):
         """For training purposes only. Binarizes attention with MAS.
-           These will no longer recieve a gradient.
+           These will no longer receive a gradient.
 
         Args:
             attn: B x 1 x max_mel_len x max_text_len
@@ -258,8 +261,9 @@ class FastPitch(nn.Module):
 
     def forward(self, inputs, use_gt_pitch=True, use_gt_cwt=True, pace=1.0, max_duration=75):
 
-        (inputs, input_lens, cwt_tgt, mel_tgt, mel_lens, pitch_dense, energy_dense,
-         speaker, attn_prior, audiopaths) = inputs #--------modify--------
+        (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
+         speaker, attn_prior, audiopaths, cwt_tgt) = inputs #--------modified--------
+        print(f'')
 
         mel_max_len = mel_tgt.size(2)
 
@@ -268,13 +272,17 @@ class FastPitch(nn.Module):
             spk_emb = 0
         else:
             spk_emb = self.speaker_emb(speaker).unsqueeze(1)
+            print(f'spk_emb shape: {spk_emb.shape}')
             spk_emb.mul_(self.speaker_emb_weight)
 
         # Input FFT
-        enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb)
+        enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb) #forward() in transformer.py
+        print(f'enc_out shape: {enc_out}')
+        print(f'enc_mask shape: {enc_mask}')
 
         # Alignment
         text_emb = self.encoder.word_emb(inputs)
+        print(f'text_emb shape: {text_emb}')
 
         # make sure to do the alignments before folding
         attn_mask = mask_from_lens(input_lens)[..., None] == 0
@@ -282,29 +290,38 @@ class FastPitch(nn.Module):
 
         attn_soft, attn_logprob = self.attention(
             mel_tgt, text_emb.permute(0, 2, 1), mel_lens, attn_mask,
-            key_lens=input_lens, keys_encoded=enc_out, attn_prior=attn_prior)
+            key_lens=input_lens, keys_encoded=enc_out, attn_prior=attn_prior) #torch.permute() > alter the dimension of tensor
+        #forward(self, queries, keys, query_lens, mask=None, key_lens=None, keys_encoded=None, attn_prior=None)
+        # queries=mel_tgt, keys=text_emb.permute(0, 2, 1), query_lens=mel_lens, mask=attn_mask
 
         attn_hard = self.binarize_attention_parallel(
             attn_soft, input_lens, mel_lens)
 
         # Viterbi --> durations
-        attn_hard_dur = attn_hard.sum(2)[:, 0, :]
+        attn_hard_dur = attn_hard.sum(2)[:, 0, :] # 2 refers to the axis
         dur_tgt = attn_hard_dur
 
         assert torch.all(torch.eq(dur_tgt.sum(dim=1), mel_lens))
 
-        # Predict prominence -------------modified------------
-        cwt_pred = self.cwt_predictor(enc_out, enc_mask)
-        cwt_tgt =
-        if use_gt_cwt and cwt_tgt is not None:
-            cwt_emb =
+        # Predict prominence -------------modified--------------
+        # if self.cwt_conditioning:
+        #     cwt_pred = self.cwt_predictor(enc_out, enc_mask).
+        #     if use_gt_cwt and cwt_tgt is not None:
+        #         cwt_emb = self.cwt_emb(cwt_tgt)
+        #     else:
+        #         cwt_emb = self.cwt_emb(cwt_pred)
+        # else:
+        #     cwt_tgt = None
+        #     cwt_pred = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
+        print(f'log_dur_pred shape: {log_dur_pred.shape}')
         dur_pred = torch.clamp(torch.exp(log_dur_pred) - 1, 0, max_duration) #----------modify---------- (add prom in this step)
 
         # Predict pitch
         pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1) #----------modify---------- (add prom in this step)
+        print(f'pitch_pred shape: {pitch_pred.shape}')
 
         # Average pitch over characters
         pitch_tgt = average_pitch(pitch_dense, dur_tgt)

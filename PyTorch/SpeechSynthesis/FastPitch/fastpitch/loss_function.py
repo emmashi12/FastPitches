@@ -49,7 +49,7 @@ class FastPitchLoss(nn.Module):
          energy_pred, energy_tgt, attn_soft, attn_hard, attn_dur,
          attn_logprob) = model_out
 
-        (mel_tgt, in_lens, out_lens) = targets
+        (mel_tgt, in_lens, out_lens, cwt_tgt) = targets  #--------modified-----------
 
         dur_tgt = attn_dur
         dur_lens = in_lens
@@ -76,6 +76,7 @@ class FastPitchLoss(nn.Module):
         pitch_loss = F.mse_loss(pitch_tgt, pitch_pred, reduction='none')
         pitch_loss = (pitch_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
 
+        #write
         if energy_pred is not None:
             energy_pred = F.pad(energy_pred, (0, ldiff, 0, 0), value=0.0)
             energy_loss = F.mse_loss(energy_tgt, energy_pred, reduction='none')
