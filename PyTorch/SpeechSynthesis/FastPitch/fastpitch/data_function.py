@@ -249,7 +249,7 @@ class TTSDataset(torch.utils.data.Dataset):
         print(f'pitch shape: {pitch.shape}')
         energy = torch.norm(mel.float(), dim=0, p=2)
         attn_prior = self.get_prior(index, mel.shape[1], text.shape[0])
-        if self.cwt_label:
+        if self.cwt_label is True:
             cwt_tensor = self.get_prom_label(index, text_info)
             print(f'cwt shape: {cwt_tensor.shape}')
         else:
