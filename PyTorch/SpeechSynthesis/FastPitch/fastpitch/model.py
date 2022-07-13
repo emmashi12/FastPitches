@@ -263,7 +263,7 @@ class FastPitch(nn.Module):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
          speaker, attn_prior, audiopaths, cwt_tgt) = inputs #--------modified--------
-        print(f'')
+        print(f'inputs shape: {inputs.shape}')
 
         mel_max_len = mel_tgt.size(2)
 
