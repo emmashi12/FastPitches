@@ -144,6 +144,13 @@ def get_model_config(model_name, args):
             # energy conditioning
             energy_conditioning=args.energy_conditioning,
             energy_embedding_kernel_size=args.energy_embedding_kernel_size,
+            # cwt predictor
+            cwt_predictor_kernel_size=args.cwt_predictor_kernel_size,
+            cwt_predictor_filter_size=args.cwt_predictor_filter_size,
+            p_cwt_predictor_dropout=args.p_cwt_predictor_dropout,
+            cwt_predictor_n_layers=args.cwt_predictor_n_layers,
+            # cwt conditioning
+            cwt_conditioning=args.cwt_conditioning
         )
         return model_config
 
