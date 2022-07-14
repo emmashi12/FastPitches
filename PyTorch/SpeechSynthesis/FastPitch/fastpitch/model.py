@@ -313,15 +313,16 @@ class FastPitch(nn.Module):
         assert torch.all(torch.eq(dur_tgt.sum(dim=1), mel_lens))
 
         # Predict prominence -------------modified--------------
-        if self.cwt_conditioning:
-            cwt_pred = self.cwt_predictor(enc_out, enc_mask).
-            if use_gt_cwt and cwt_tgt is not None:
-                cwt_emb = self.cwt_emb(cwt_tgt)
-            else:
-                cwt_emb = self.cwt_emb(cwt_pred)
-        else:
-            cwt_tgt = None
-            cwt_pred = None
+        # if self.cwt_conditioning:
+        #     cwt_pred = self.cwt_predictor(enc_out, enc_mask).
+        #     if use_gt_cwt and cwt_tgt is not None:
+        #         cwt_emb = self.cwt_emb(cwt_tgt)
+        #     else:
+        #         cwt_emb = self.cwt_emb(cwt_pred)
+        #     enc_out = enc_out + cwt_emb
+        # else:
+        #     cwt_tgt = None
+        #     cwt_pred = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)

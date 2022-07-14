@@ -436,7 +436,7 @@ class TTSCollate:
             for i in range(len(ids_sorted_decreasing)):
                 cwt = batch[ids_sorted_decreasing[i]][8]
                 cwt_padded[i, :cwt.shape[0]] = cwt
-            print(f'cwt_padded: {cwt_padded}')
+            print(f'cwt_padded: {cwt_padded.shape}')
         else:
             cwt_padded = None
 
