@@ -378,8 +378,8 @@ class TTSDataset(torch.utils.data.Dataset):
             prompath = self.dataset_path + '/' + prompath
             prom = torch.load(prompath)
             cwt_list = prom.tolist()
-            print(cwt_list)
-            print(f'text info: {text_info}')
+            #print(cwt_list)
+            #print(f'text info: {text_info}')
 
             text_symbols = [x[1] for x in text_info]
             text_words = [x[0] for x in text_info]
@@ -399,7 +399,7 @@ class TTSDataset(torch.utils.data.Dataset):
                     t = [0.0] * text_symbols[i]  # upsample cwt label for non-words
                     upsampled += t
 
-            print(upsampled)
+            #print(upsampled)
             print(len(upsampled))
             cwt_tensor = torch.Tensor(upsampled)  # convert back to tensor
             #print(cwt_tensor)

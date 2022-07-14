@@ -271,9 +271,9 @@ class FastPitch(nn.Module):
         # enc_out:
         # enc_mask:
         # text_emb:
-        # log_dur_pred:
-        # pitch_pred:
-        # energy_pred:
+        # log_dur_pred: [16, 140]
+        # pitch_pred: [16, 1, 140] 1 > num_formants
+        # energy_pred: [16, 140] 140 > mel_len
 
         mel_max_len = mel_tgt.size(2)
 

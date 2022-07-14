@@ -197,7 +197,7 @@ def load_fields(fpath):
 
 def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                            batch_size=128, dataset=None, load_mels=False,
-                           load_pitch=False, p_arpabet=0.0):
+                           load_pitch=False, p_arpabet=0.0):  #p_arpabet=1.0
     tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet)
 
     fields['text'] = [torch.LongTensor(tp.encode_text(text))
