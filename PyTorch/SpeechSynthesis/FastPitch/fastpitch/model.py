@@ -265,16 +265,16 @@ class FastPitch(nn.Module):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
          speaker, attn_prior, audiopaths, cwt_tgt) = inputs #--------modified--------
-        print(f'inputs shape: {inputs.shape}')
-        print(f'cwt_tgt shape: {cwt_tgt.shape}')
-        # inputs: [16, 140]
+        # print(f'inputs shape: {inputs.shape}')
+        # print(f'cwt_tgt shape: {cwt_tgt.shape}')
+        # inputs: [16, 140] [batch_size, mel_len]]
         # spk_emb: None
-        # enc_out: [16, 140, 384]
+        # enc_out: [16, 140, 384] [batch_size, mel_len, output_dim]
         # enc_mask: [16, 140, 1]
-        # text_emb: [16, 140, 384]
-        # log_dur_pred: [16, 140]
-        # pitch_pred: [16, 1, 140] 1 > num_formants
-        # energy_pred: [16, 140] 140 > mel_len
+        # text_emb: [16, 140, 384] [batch_size, mel_len, output_dim]
+        # log_dur_pred: [16, 140] [batch_size, mel_len]]
+        # pitch_pred: [16, 1, 140] [batch_size, num_formants, mel_len]
+        # energy_pred: [16, 140] [batch_size, mel_len]
 
         mel_max_len = mel_tgt.size(2)
 
@@ -287,12 +287,12 @@ class FastPitch(nn.Module):
 
         # Input FFT
         enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb) #forward() in transformer.py
-        print(f'enc_out shape: {enc_out.shape}')
-        print(f'enc_mask shape: {enc_mask.shape}')
+        # print(f'enc_out shape: {enc_out.shape}')
+        # print(f'enc_mask shape: {enc_mask.shape}')
 
         # Alignment
         text_emb = self.encoder.word_emb(inputs)
-        print(f'text_emb shape: {text_emb.shape}')
+        # print(f'text_emb shape: {text_emb.shape}')
 
         # make sure to do the alignments before folding
         attn_mask = mask_from_lens(input_lens)[..., None] == 0
@@ -315,26 +315,24 @@ class FastPitch(nn.Module):
 
         # Predict prominence -------------modified--------------
         if self.cwt_conditioning:
-            cwt_pred = self.cwt_predictor(enc_out, enc_mask)
-            print(f'cwt_pred shape: {cwt_pred.shape}')
-
-        #     if use_gt_cwt and cwt_tgt is not None:
-        #         cwt_emb = self.cwt_emb(cwt_tgt)
-        #     else:
-        #         cwt_emb = self.cwt_emb(cwt_pred)
-        #     enc_out = enc_out + cwt_emb
-        # else:
-        #     cwt_tgt = None
-        #     cwt_pred = None
+            cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
+            print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, mel_len]
+            if use_gt_cwt and cwt_tgt is not None:
+                cwt_emb = self.cwt_emb(cwt_tgt)
+            else:
+                cwt_emb = self.cwt_emb(cwt_pred)
+            enc_out = enc_out + cwt_emb.transpose(1, 2)
+        else:
+            cwt_pred = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
         print(f'log_dur_pred shape: {log_dur_pred.shape}')
-        dur_pred = torch.clamp(torch.exp(log_dur_pred) - 1, 0, max_duration) #----------modify---------- (add prom in this step)
+        dur_pred = torch.clamp(torch.exp(log_dur_pred) - 1, 0, max_duration)
 
         # Predict pitch
-        pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1) #----------modify---------- (add prom in this step)
-        print(f'pitch_pred shape: {pitch_pred.shape}')
+        pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1)
+        print(f'pitch_pred shape: {pitch_pred.shape}')  # [batch_size, num_formants, mel_len]
 
         # Average pitch over characters
         pitch_tgt = average_pitch(pitch_dense, dur_tgt)
@@ -343,7 +341,7 @@ class FastPitch(nn.Module):
             pitch_emb = self.pitch_emb(pitch_tgt)
         else:
             pitch_emb = self.pitch_emb(pitch_pred)
-        enc_out = enc_out + pitch_emb.transpose(1, 2)
+        enc_out = enc_out + pitch_emb.transpose(1, 2)  # [batch_size, mel_len, num_formants]
 
         # Predict energy
         if self.energy_conditioning:
@@ -368,9 +366,9 @@ class FastPitch(nn.Module):
         mel_out = self.proj(dec_out)
         return (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred,
                 pitch_tgt, energy_pred, energy_tgt, attn_soft, attn_hard,
-                attn_hard_dur, attn_logprob)  #add cwt_tgt and cwt_pred
+                attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt)  #add cwt_tgt and cwt_pred
 
-    def infer(self, inputs, pace=1.0, dur_tgt=None, pitch_tgt=None,
+    def infer(self, inputs, pace=1.0, cwt_tgt=None, dur_tgt=None, pitch_tgt=None,
               energy_tgt=None, pitch_transform=None, max_duration=75,
               speaker=0):  #add cwt_tgt=None
 
