@@ -267,6 +267,7 @@ class FastPitch(nn.Module):
          speaker, attn_prior, audiopaths, cwt_tgt) = inputs #--------modified--------
         # print(f'inputs shape: {inputs.shape}')
         # print(f'cwt_tgt shape: {cwt_tgt.shape}')
+        print(f'mel_tgt shape: {mel_tgt.shape}')
         # inputs: [16, 140] [batch_size, mel_len]]
         # spk_emb: None
         # enc_out: [16, 140, 384] [batch_size, mel_len, output_dim]
