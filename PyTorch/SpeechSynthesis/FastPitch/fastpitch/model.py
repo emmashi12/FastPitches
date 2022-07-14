@@ -228,6 +228,8 @@ class FastPitch(nn.Module):
             n_mel_channels, 0, symbols_embedding_dim,
             use_query_proj=True, align_query_enc_type='3xconv')
 
+        print("init done")
+
     def binarize_attention(self, attn, in_lens, out_lens):
         """For training purposes only. Binarizes attention with MAS.
            These will no longer receive a gradient.
