@@ -49,9 +49,9 @@ class FastPitchLoss(nn.Module):
     def forward(self, model_out, targets, is_training=True, meta_agg='mean'):
         (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred, pitch_tgt,
          energy_pred, energy_tgt, attn_soft, attn_hard, attn_dur,
-         attn_logprob, cwt_pred) = model_out  #from forward() in model.py
+         attn_logprob, cwt_pred, cwt_tgt) = model_out  #from forward() in model.py
 
-        (mel_tgt, in_lens, out_lens, cwt_tgt) = targets  #--------modified-----------
+        (mel_tgt, in_lens, out_lens, cwt_tgt) = targets  #--------modified----------- y
 
         dur_tgt = attn_dur
         dur_lens = in_lens
