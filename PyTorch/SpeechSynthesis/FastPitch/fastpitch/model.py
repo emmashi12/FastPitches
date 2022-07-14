@@ -279,12 +279,12 @@ class FastPitch(nn.Module):
 
         # Input FFT
         enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb) #forward() in transformer.py
-        print(f'enc_out shape: {enc_out}')
-        print(f'enc_mask shape: {enc_mask}')
+        print(f'enc_out shape: {enc_out.shape}')
+        print(f'enc_mask shape: {enc_mask.shape}')
 
         # Alignment
         text_emb = self.encoder.word_emb(inputs)
-        print(f'text_emb shape: {text_emb}')
+        print(f'text_emb shape: {text_emb.shape}')
 
         # make sure to do the alignments before folding
         attn_mask = mask_from_lens(input_lens)[..., None] == 0
@@ -337,7 +337,7 @@ class FastPitch(nn.Module):
         # Predict energy
         if self.energy_conditioning:
             energy_pred = self.energy_predictor(enc_out, enc_mask).squeeze(-1)
-
+            print(f'energy_pred shape: {energy_pred.shape}')
             # Average energy over characters
             energy_tgt = average_pitch(energy_dense.unsqueeze(1), dur_tgt)
             energy_tgt = torch.log(1.0 + energy_tgt)
