@@ -79,7 +79,7 @@ class FastPitchLoss(nn.Module):
         pitch_loss = (pitch_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
 
         #write loss function for cwt
-        if cwt_pred is not None:
+        #if cwt_pred is not None:
 
         if energy_pred is not None:
             energy_pred = F.pad(energy_pred, (0, ldiff, 0, 0), value=0.0)
