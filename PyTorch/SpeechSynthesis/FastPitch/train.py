@@ -397,10 +397,10 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
     tik = time.perf_counter()
     with torch.no_grad():
         val_sampler = DistributedSampler(valset) if distributed_run else None
-        val_loader = DataLoader(valset, num_workers=4, shuffle=False,
+        val_loader = DataLoader(valset, num_workers=1, shuffle=False,
                                 sampler=val_sampler,
                                 batch_size=batch_size, pin_memory=False,
-                                collate_fn=collate_fn)
+                                collate_fn=collate_fn) #num_workers=4
         val_meta = defaultdict(float)
         val_num_frames = 0
         for i, batch in enumerate(val_loader):
