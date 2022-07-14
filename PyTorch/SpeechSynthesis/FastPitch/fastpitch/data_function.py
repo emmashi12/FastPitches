@@ -291,7 +291,7 @@ class TTSDataset(torch.utils.data.Dataset):
 
     def get_text(self, text):
         #word input, phoneme tensor output
-        if self.cwt_count:
+        if self.cwt_lanel:
             text, text_info = self.tp.encode_text(text) #see line 190, get a list of a sequence of index representing the text
         else:
             text = self.tp.encode_text(text)

@@ -42,14 +42,14 @@ class FastPitchLoss(nn.Module):
         self.dur_predictor_loss_scale = dur_predictor_loss_scale
         self.pitch_predictor_loss_scale = pitch_predictor_loss_scale
         self.energy_predictor_loss_scale = energy_predictor_loss_scale
-        self.cwt_predictor_loss_scale = cwt_predictor_loss_scale
+        self.cwt_predictor_loss_scale = cwt_predictor_loss_scale  #-------modified--------
         self.attn_loss_scale = attn_loss_scale
         self.attn_ctc_loss = AttentionCTCLoss()
 
     def forward(self, model_out, targets, is_training=True, meta_agg='mean'):
         (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred, pitch_tgt,
          energy_pred, energy_tgt, attn_soft, attn_hard, attn_dur,
-         attn_logprob) = model_out #from forward() in model.py
+         attn_logprob) = model_out  #from forward() in model.py
 
         (mel_tgt, in_lens, out_lens, cwt_tgt) = targets  #--------modified-----------
 

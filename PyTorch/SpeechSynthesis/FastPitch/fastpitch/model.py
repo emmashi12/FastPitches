@@ -351,15 +351,15 @@ class FastPitch(nn.Module):
             dur_tgt, enc_out, pace, mel_max_len)
 
         # Output FFT
-        dec_out, dec_mask = self.decoder(len_regulated, dec_lens)
+        dec_out, dec_mask = self.decoder(len_regulated, dec_lens)  #dec for decoder
         mel_out = self.proj(dec_out)
         return (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred,
                 pitch_tgt, energy_pred, energy_tgt, attn_soft, attn_hard,
-                attn_hard_dur, attn_logprob)
+                attn_hard_dur, attn_logprob)  #add cwt_tgt and cwt_pred
 
     def infer(self, inputs, pace=1.0, dur_tgt=None, pitch_tgt=None,
               energy_tgt=None, pitch_transform=None, max_duration=75,
-              speaker=0):
+              speaker=0):  #add cwt_tgt=None
 
         if self.speaker_emb is None:
             spk_emb = 0
@@ -371,6 +371,17 @@ class FastPitch(nn.Module):
 
         # Input FFT
         enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb)
+
+        # Predict cwt
+        # if self.cwt_conditioning:
+        #     if cwt_tgt is None:
+        #         cwt_pred =
+        #         cwt_emb =
+        #     else:
+        #         cwt_emb =
+        #     enc_out = enc_out + cwt_emb
+        # else:
+        #     cwt_emb = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
