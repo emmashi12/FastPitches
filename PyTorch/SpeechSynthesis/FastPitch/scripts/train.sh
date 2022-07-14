@@ -3,7 +3,7 @@
 export OMP_NUM_THREADS=1
 
 : ${NUM_GPUS:=8}
-: ${BATCH_SIZE:=16}
+: ${BATCH_SIZE:=8}
 : ${GRAD_ACCUMULATION:=2}
 : ${OUTPUT_DIR:="./output"}
 : ${DATASET_PATH:=LJSpeech-1.1}
