@@ -604,10 +604,10 @@ def main():
         train_sampler, shuffle = None, True
 
     # 4 workers are optimal on DGX-1 (from epoch 2 onwards)
-    train_loader = DataLoader(trainset, num_workers=4, shuffle=shuffle,
+    train_loader = DataLoader(trainset, num_workers=1, shuffle=shuffle,
                               sampler=train_sampler, batch_size=args.batch_size,
                               pin_memory=True, persistent_workers=True,
-                              drop_last=True, collate_fn=collate_fn)
+                              drop_last=True, collate_fn=collate_fn) #num_workers=4
 
     if args.ema_decay:
         mt_ema_params = init_multi_tensor_ema(model, ema_model)
