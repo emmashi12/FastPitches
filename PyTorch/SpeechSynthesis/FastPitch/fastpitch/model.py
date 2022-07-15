@@ -130,6 +130,7 @@ class FastPitch(nn.Module):
                  cwt_conditioning,
                  cwt_predictor_kernel_size, cwt_predictor_filter_size,
                  p_cwt_predictor_dropout, cwt_predictor_n_layers,
+                 cwt_embedding_kernel_size,
                  n_speakers, speaker_emb_weight, pitch_conditioning_formants=1):
         super(FastPitch, self).__init__()
 
@@ -205,11 +206,11 @@ class FastPitch(nn.Module):
                 n_predictions=1)
             print("cwt embedding")
 
-            # self.cwt_emb = nn.Conv1d(
-            #     pitch_conditioning_formants, symbols_embedding_dim,
-            #     kernel_size=pitch_embedding_kernel_size,
-            #     padding=int((pitch_embedding_kernel_size - 1) / 2))
-            self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)
+            self.cwt_emb = nn.Conv1d(
+                pitch_conditioning_formants, symbols_embedding_dim,
+                kernel_size=cwt_embedding_kernel_size,
+                padding=int((cwt_embedding_kernel_size - 1) / 2))  # for continuous label
+            # self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)  # for categorical label
 
         self.energy_conditioning = energy_conditioning
         if energy_conditioning:
