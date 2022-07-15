@@ -328,11 +328,11 @@ class FastPitch(nn.Module):
         # Predict prominence -------------modified--------------
         if self.cwt_conditioning:
             print("cwt")
-            cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(2, 0, 1)
-            print(f'cwt_pred shape: {cwt_pred.shape}')  # [1, batch_size, text_len]
+            cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+            print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, 1, text_len]
             #print(cwt_pred)  # predict continuous number now
             if use_gt_cwt and cwt_tgt is not None:
-                cwt_tgt = cwt_tgt.unsqueeze(0)  # [1, batch_size, text_len]
+                cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
                 print(f'cwt_tgt shape: {cwt_tgt.shape}')
                 cwt_emb = self.cwt_emb(cwt_tgt)
             else:
@@ -348,7 +348,7 @@ class FastPitch(nn.Module):
 
         # Predict pitch
         pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1)
-        print(f'pitch_pred shape: {pitch_pred.shape}')  # [batch_size, num_formants, mel_len]
+        print(f'pitch_pred shape: {pitch_pred.shape}')  # [batch_size, num_formants, text_len]
 
         # Average pitch over characters
         pitch_tgt = average_pitch(pitch_dense, dur_tgt)
