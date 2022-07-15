@@ -210,7 +210,7 @@ class FastPitch(nn.Module):
                 1, symbols_embedding_dim,
                 kernel_size=cwt_embedding_kernel_size,
                 padding=int((cwt_embedding_kernel_size - 1) / 2))  # for continuous label
-            # symbols_embedding_dim=384, filter_size=256, kernel_size=3,
+            # symbols_embedding_dim=384, filter_size=256, kernel_size=3
 
             # self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)  # for categorical label
 
@@ -396,15 +396,15 @@ class FastPitch(nn.Module):
         enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb)
 
         # Predict cwt
-        # if self.cwt_conditioning:
-        #     if cwt_tgt is None:
-        #         cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
-        #         cwt_emb =
-        #     else:
-        #         cwt_emb =
-        #     enc_out = enc_out + cwt_emb
-        # else:
-        #     cwt_pred = None
+        if self.cwt_conditioning:
+            if cwt_tgt is None:
+                cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
+                cwt_emb = self.cwt_emb(cwt_tgt)
+            else:
+                cwt_emb = self.cwt_emb(cwt_pred)
+            enc_out = enc_out + cwt_emb.transpose(1, 2)
+        else:
+            cwt_pred = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
@@ -449,4 +449,4 @@ class FastPitch(nn.Module):
         mel_out = self.proj(dec_out)
         # mel_lens = dec_mask.squeeze(2).sum(axis=1).long()
         mel_out = mel_out.permute(0, 2, 1)  # For inference.py
-        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred
+        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_pred
