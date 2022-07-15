@@ -277,14 +277,15 @@ class FastPitch(nn.Module):
         # print(f'cwt_tgt shape: {cwt_tgt.shape}')
         print(f'mel_tgt shape: {mel_tgt.shape}')
 
-        # inputs: [16, 140] [batch_size, mel_len]]
+        # inputs: [16, 140] [batch_size, text_len]
+        # mel_tgt: [batch_size, mel-channel, mel_len]
         # spk_emb: None
-        # enc_out: [16, 140, 384] [batch_size, mel_len, output_dim]
+        # enc_out: [16, 140, 384] [batch_size, text_len, output_dim]
         # enc_mask: [16, 140, 1]
-        # text_emb: [16, 140, 384] [batch_size, mel_len, output_dim]
-        # log_dur_pred: [16, 140] [batch_size, mel_len]]
-        # pitch_pred: [16, 1, 140] [batch_size, num_formants, mel_len]
-        # energy_pred: [16, 140] [batch_size, mel_len]
+        # text_emb: [16, 140, 384] [batch_size, text_len, output_dim]
+        # log_dur_pred: [16, 140] [batch_size, text_len]
+        # pitch_pred: [16, 1, 140] [batch_size, num_formants, text_len]
+        # energy_pred: [16, 140] [batch_size, text_len]
 
         mel_max_len = mel_tgt.size(2)
 
@@ -326,9 +327,10 @@ class FastPitch(nn.Module):
 
         # Predict prominence -------------modified--------------
         if self.cwt_conditioning:
+            print("cwt")
             cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(2, 0, 1)
             print(f'cwt_pred shape: {cwt_pred.shape}')  # [1, batch_size, text_len]
-            print(cwt_pred)  # predict continuous number now
+            #print(cwt_pred)  # predict continuous number now
             if use_gt_cwt and cwt_tgt is not None:
                 cwt_tgt = cwt_tgt.unsqueeze(0)  # [1, batch_size, text_len]
                 print(f'cwt_tgt shape: {cwt_tgt.shape}')
