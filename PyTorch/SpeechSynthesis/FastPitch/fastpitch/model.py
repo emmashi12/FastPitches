@@ -327,7 +327,7 @@ class FastPitch(nn.Module):
         # Predict prominence -------------modified--------------
         if self.cwt_conditioning:
             cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
-            print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, mel_len]
+            print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, text_len, 1]
             print(cwt_pred)  # continuous number now
             if use_gt_cwt and cwt_tgt is not None:
                 cwt_emb = self.cwt_emb(cwt_tgt)
@@ -362,7 +362,7 @@ class FastPitch(nn.Module):
             # Average energy over characters
             energy_tgt = average_pitch(energy_dense.unsqueeze(1), dur_tgt)
             energy_tgt = torch.log(1.0 + energy_tgt)
-
+            print(f'energy_tgt shape {energy_tgt.shape}')
             energy_emb = self.energy_emb(energy_tgt)
             energy_tgt = energy_tgt.squeeze(1)
             enc_out = enc_out + energy_emb.transpose(1, 2)
