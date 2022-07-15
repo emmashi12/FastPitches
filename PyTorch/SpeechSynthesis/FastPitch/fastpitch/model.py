@@ -210,6 +210,8 @@ class FastPitch(nn.Module):
                 pitch_conditioning_formants, symbols_embedding_dim,
                 kernel_size=cwt_embedding_kernel_size,
                 padding=int((cwt_embedding_kernel_size - 1) / 2))  # for continuous label
+            # symbols_embedding_dim=384, filter_size=256, kernel_size=3,
+
             # self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)  # for categorical label
 
         self.energy_conditioning = energy_conditioning

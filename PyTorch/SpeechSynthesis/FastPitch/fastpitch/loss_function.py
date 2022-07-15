@@ -61,9 +61,8 @@ class FastPitchLoss(nn.Module):
         # (B,H,T) => (B,T,H)
         mel_tgt = mel_tgt.transpose(1, 2)
 
-        # loss function for cwt
+        # loss function for continuous cwt label
         # if cwt_pred is not None:
-        #     cwt_mask = mask_from_lens()
         #     ldiff = cwt_tgt.size(1) - cwt_pred.size(1)  # [batch_size, mel_len]
         #     cwt_pred = F.pad(cwt_pred, (0,), value=0.0)
         #     cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
