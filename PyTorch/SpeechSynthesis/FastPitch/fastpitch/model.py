@@ -204,6 +204,11 @@ class FastPitch(nn.Module):
                 n_layers=cwt_predictor_n_layers,
                 n_predictions=1)
             print("cwt embedding")
+
+            # self.cwt_emb = nn.Conv1d(
+            #     pitch_conditioning_formants, symbols_embedding_dim,
+            #     kernel_size=pitch_embedding_kernel_size,
+            #     padding=int((pitch_embedding_kernel_size - 1) / 2))
             self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)
 
         self.energy_conditioning = energy_conditioning
@@ -320,6 +325,7 @@ class FastPitch(nn.Module):
         if self.cwt_conditioning:
             cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
             print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, mel_len]
+            print(cwt_pred)
             if use_gt_cwt and cwt_tgt is not None:
                 cwt_emb = self.cwt_emb(cwt_tgt)
             else:
