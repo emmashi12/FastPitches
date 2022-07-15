@@ -358,7 +358,7 @@ class FastPitch(nn.Module):
         # Predict energy
         if self.energy_conditioning:
             energy_pred = self.energy_predictor(enc_out, enc_mask).squeeze(-1)
-            print(f'energy_pred shape: {energy_pred.shape}')
+            print(f'energy_pred shape: {energy_pred.shape}')  # [batch_size, mel_len[]
             # Average energy over characters
             energy_tgt = average_pitch(energy_dense.unsqueeze(1), dur_tgt)
             energy_tgt = torch.log(1.0 + energy_tgt)
