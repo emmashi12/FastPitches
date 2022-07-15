@@ -401,7 +401,7 @@ class TTSDataset(torch.utils.data.Dataset):
 
             #print(upsampled)
             print(len(upsampled))
-            cwt_tensor = torch.Tensor(upsampled)  # convert back to tensor
+            cwt_tensor = torch.LongTensor(upsampled)  # convert back to tensor
             #print(cwt_tensor)
             assert list(cwt_tensor.size())[0] == total_symbols
 

@@ -325,7 +325,7 @@ class FastPitch(nn.Module):
         if self.cwt_conditioning:
             cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
             print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, mel_len]
-            print(cwt_pred)
+            print(cwt_pred)  # continuous number now
             if use_gt_cwt and cwt_tgt is not None:
                 cwt_emb = self.cwt_emb(cwt_tgt)
             else:
