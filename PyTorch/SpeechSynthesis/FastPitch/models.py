@@ -150,7 +150,8 @@ def get_model_config(model_name, args):
             p_cwt_predictor_dropout=args.p_cwt_predictor_dropout,
             cwt_predictor_n_layers=args.cwt_predictor_n_layers,
             # cwt conditioning
-            cwt_conditioning=args.cwt_conditioning
+            cwt_conditioning=args.cwt_conditioning,
+            cwt_embedding_kernel_size=args.cwt_embedding_kernel_size
         )
         return model_config
 
