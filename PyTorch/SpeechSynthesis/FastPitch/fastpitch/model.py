@@ -326,9 +326,9 @@ class FastPitch(nn.Module):
 
         # Predict prominence -------------modified--------------
         if self.cwt_conditioning:
-            cwt_pred = self.cwt_predictor(enc_out, enc_mask),permute(2, 0, 1)
+            cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(2, 0, 1)
             print(f'cwt_pred shape: {cwt_pred.shape}')  # [1, batch_size, text_len]
-            print(cwt_pred)  # continuous number now
+            print(cwt_pred)  # predict continuous number now
             if use_gt_cwt and cwt_tgt is not None:
                 cwt_tgt = cwt_tgt.unsqueeze(0)  # [1, batch_size, text_len]
                 print(f'cwt_tgt shape: {cwt_tgt.shape}')
