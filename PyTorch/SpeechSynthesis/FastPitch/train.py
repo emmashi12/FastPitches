@@ -118,6 +118,8 @@ def parse_args(parser):
                      default=1.0, help='Rescale pitch predictor loss')
     opt.add_argument('--attn-loss-scale', type=float,
                      default=1.0, help='Rescale alignment loss')
+    opt.add_argument('--cwt-predictor-loss-scale', type=float,
+                     default=1.0, help='Rescale cwt predictor loss')  # -------modified--------
 
     data = parser.add_argument_group('dataset parameters')
     data.add_argument('--training-files', type=str, nargs='*', required=True,
@@ -159,7 +161,7 @@ def parse_args(parser):
     cond.add_argument('--load-mel-from-disk', action='store_true',
                       help='Use mel-spectrograms cache on the disk')  # XXX
     cond.add_argument('--load-cwt-from-disk', action='store_true',
-                      help='Use cwt cache on the disk') #------modified---------
+                      help='Use cwt cache on the disk')  # ------modified---------
 
     audio = parser.add_argument_group('audio parameters')
     audio.add_argument('--max-wav-value', default=32768.0, type=float,
@@ -588,7 +590,8 @@ def main():
     criterion = FastPitchLoss(
         dur_predictor_loss_scale=args.dur_predictor_loss_scale,
         pitch_predictor_loss_scale=args.pitch_predictor_loss_scale,
-        attn_loss_scale=args.attn_loss_scale)
+        attn_loss_scale=args.attn_loss_scale,
+        cwt_predictor_loss_scale=args.cwt_predictor_loss_scale)
 
     collate_fn = TTSCollate()
 
@@ -657,7 +660,7 @@ def main():
 
             with torch.cuda.amp.autocast(enabled=args.amp):
                 y_pred = model(x) #forward pass starts (calling the model)
-                loss, meta = criterion(y_pred, y)
+                loss, meta = criterion(y_pred, y)  #
 
                 if (args.kl_loss_start_epoch is not None
                         and epoch >= args.kl_loss_start_epoch):

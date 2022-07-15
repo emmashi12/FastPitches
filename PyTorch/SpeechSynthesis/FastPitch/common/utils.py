@@ -57,6 +57,8 @@ def mask_from_lens(lens, max_len: Optional[int] = None):
         max_len = lens.max()
     ids = torch.arange(0, max_len, device=lens.device, dtype=lens.dtype)
     mask = torch.lt(ids, lens.unsqueeze(1))
+    # torch.lt() > A boolean tensor that is True where input is less than other and False elsewhere
+    # ids and lens.unsqueeze(1) should have same dimensions
     return mask
 
 

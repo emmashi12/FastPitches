@@ -268,6 +268,7 @@ class FastPitch(nn.Module):
         # print(f'inputs shape: {inputs.shape}')
         # print(f'cwt_tgt shape: {cwt_tgt.shape}')
         print(f'mel_tgt shape: {mel_tgt.shape}')
+
         # inputs: [16, 140] [batch_size, mel_len]]
         # spk_emb: None
         # enc_out: [16, 140, 384] [batch_size, mel_len, output_dim]
@@ -287,7 +288,7 @@ class FastPitch(nn.Module):
             spk_emb.mul_(self.speaker_emb_weight)
 
         # Input FFT
-        enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb) #forward() in transformer.py
+        enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb)  # forward() in transformer.py
         # print(f'enc_out shape: {enc_out.shape}')
         # print(f'enc_mask shape: {enc_mask.shape}')
 
@@ -301,8 +302,9 @@ class FastPitch(nn.Module):
 
         attn_soft, attn_logprob = self.attention(
             mel_tgt, text_emb.permute(0, 2, 1), mel_lens, attn_mask,
-            key_lens=input_lens, keys_encoded=enc_out, attn_prior=attn_prior) #torch.permute() > alter the dimension of tensor
-        #forward(self, queries, keys, query_lens, mask=None, key_lens=None, keys_encoded=None, attn_prior=None)
+            key_lens=input_lens, keys_encoded=enc_out, attn_prior=attn_prior)
+        # torch.permute() > alter the dimension of tensor
+        # forward(self, queries, keys, query_lens, mask=None, key_lens=None, keys_encoded=None, attn_prior=None)
         # queries=mel_tgt, keys=text_emb.permute(0, 2, 1), query_lens=mel_lens, mask=attn_mask
 
         attn_hard = self.binarize_attention_parallel(
@@ -315,16 +317,16 @@ class FastPitch(nn.Module):
         assert torch.all(torch.eq(dur_tgt.sum(dim=1), mel_lens))
 
         # Predict prominence -------------modified--------------
-        # if self.cwt_conditioning:
-        #     cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
-        #     print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, mel_len]
-        #     if use_gt_cwt and cwt_tgt is not None:
-        #         cwt_emb = self.cwt_emb(cwt_tgt)
-        #     else:
-        #         cwt_emb = self.cwt_emb(cwt_pred)
-        #     enc_out = enc_out + cwt_emb.transpose(1, 2)
-        # else:
-        #     cwt_pred = None
+        if self.cwt_conditioning:
+            cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
+            print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, mel_len]
+            if use_gt_cwt and cwt_tgt is not None:
+                cwt_emb = self.cwt_emb(cwt_tgt)
+            else:
+                cwt_emb = self.cwt_emb(cwt_pred)
+            enc_out = enc_out + cwt_emb.transpose(1, 2)
+        else:
+            cwt_pred = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
@@ -363,15 +365,15 @@ class FastPitch(nn.Module):
             dur_tgt, enc_out, pace, mel_max_len)
 
         # Output FFT
-        dec_out, dec_mask = self.decoder(len_regulated, dec_lens)  #dec for decoder
+        dec_out, dec_mask = self.decoder(len_regulated, dec_lens)  # dec for decoder
         mel_out = self.proj(dec_out)
         return (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred,
                 pitch_tgt, energy_pred, energy_tgt, attn_soft, attn_hard,
-                attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt)  #add cwt_tgt and cwt_pred
+                attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt)  # add cwt_tgt and cwt_pred
 
     def infer(self, inputs, pace=1.0, cwt_tgt=None, dur_tgt=None, pitch_tgt=None,
               energy_tgt=None, pitch_transform=None, max_duration=75,
-              speaker=0):  #add cwt_tgt=None
+              speaker=0):  # add cwt_tgt=None
 
         if self.speaker_emb is None:
             spk_emb = 0
@@ -387,13 +389,13 @@ class FastPitch(nn.Module):
         # Predict cwt
         # if self.cwt_conditioning:
         #     if cwt_tgt is None:
-        #         cwt_pred =
+        #         cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
         #         cwt_emb =
         #     else:
         #         cwt_emb =
         #     enc_out = enc_out + cwt_emb
         # else:
-        #     cwt_emb = None
+        #     cwt_pred = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
