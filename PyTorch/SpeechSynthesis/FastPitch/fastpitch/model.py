@@ -402,10 +402,11 @@ class FastPitch(nn.Module):
         # Predict cwt
         if self.cwt_conditioning:
             if cwt_tgt is None:
-                cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(-1)
-                cwt_emb = self.cwt_emb(cwt_tgt)
-            else:
+                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
                 cwt_emb = self.cwt_emb(cwt_pred)
+            else:
+                cwt_tgt = cwt_tgt.unsqueeze(1)
+                cwt_emb = self.cwt_emb(cwt_tgt)
             enc_out = enc_out + cwt_emb.transpose(1, 2)
         else:
             cwt_pred = None
