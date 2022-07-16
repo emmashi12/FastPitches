@@ -118,6 +118,8 @@ def parse_args(parser):
                      default=1.0, help='Rescale pitch predictor loss')
     opt.add_argument('--attn-loss-scale', type=float,
                      default=1.0, help='Rescale alignment loss')
+    opt.add_argument('--energy-predictor-loss-scale', type=float,
+                     default=1.0, help='Rescale energy predictor loss')  # -------modified--------
     opt.add_argument('--cwt-predictor-loss-scale', type=float,
                      default=1.0, help='Rescale cwt predictor loss')  # -------modified--------
 
@@ -593,7 +595,8 @@ def main():
         dur_predictor_loss_scale=args.dur_predictor_loss_scale,
         pitch_predictor_loss_scale=args.pitch_predictor_loss_scale,
         attn_loss_scale=args.attn_loss_scale,
-        cwt_predictor_loss_scale=args.cwt_predictor_loss_scale)
+        cwt_predictor_loss_scale=args.cwt_predictor_loss_scale,
+        energy_predictor_loss_scale=args.energy_predictor_loss_scale)  # ----modified----
 
     collate_fn = TTSCollate()
 
