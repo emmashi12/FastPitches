@@ -127,6 +127,7 @@ def get_model_config(model_name, args):
             p_dur_predictor_dropout=args.p_dur_predictor_dropout,
             dur_predictor_n_layers=args.dur_predictor_n_layers,
             # pitch predictor
+            pitch_conditioning=args.pitch_conditioning,
             pitch_predictor_kernel_size=args.pitch_predictor_kernel_size,
             pitch_predictor_filter_size=args.pitch_predictor_filter_size,
             p_pitch_predictor_dropout=args.p_pitch_predictor_dropout,
