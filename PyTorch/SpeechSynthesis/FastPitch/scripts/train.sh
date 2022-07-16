@@ -23,11 +23,11 @@ export OMP_NUM_THREADS=1
 # Train a mixed phoneme/grapheme model
 : ${PHONE:=true}
 # Enable pitch conditioning
-: ${PITCH:=true}
+: ${PITCH:=false}
 # Enable energy conditioning
-: ${ENERGY:=true}
+: ${ENERGY:=false}
 # Enable cwt conditioning
-: ${CWT:=true}
+: ${CWT:=false}
 : ${TEXT_CLEANERS:=english_cleaners_v2}
 # Add dummy space prefix/suffix is audio is not precisely trimmed
 : ${APPEND_SPACES:=false}
