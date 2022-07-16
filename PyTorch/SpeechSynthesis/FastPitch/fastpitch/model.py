@@ -178,6 +178,7 @@ class FastPitch(nn.Module):
         # pitch conditioning --------modified---------
         self.pitch_conditioning = pitch_conditioning
         if pitch_conditioning:
+            print("Pitch Predictor")
             self.pitch_predictor = TemporalPredictor(
                 in_fft_output_size,
                 filter_size=pitch_predictor_filter_size,
@@ -220,6 +221,7 @@ class FastPitch(nn.Module):
 
         self.energy_conditioning = energy_conditioning
         if energy_conditioning:
+            print("Energy Predictor")
             self.energy_predictor = TemporalPredictor(
                 in_fft_output_size,
                 filter_size=energy_predictor_filter_size,
