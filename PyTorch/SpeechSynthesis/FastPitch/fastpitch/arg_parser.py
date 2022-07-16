@@ -99,6 +99,7 @@ def parse_fastpitch_args(parent, add_help=False):
                           help='Number of conv-1D layers')
 
     pitch_pred = parser.add_argument_group('pitch predictor parameters')
+    pitch_pred.add_argument('--pitch-conditioning', action='store_true')  # ------modified------
     pitch_pred.add_argument('--pitch-predictor-kernel-size', default=3, type=int,
                             help='Pitch predictor conv-1D kernel size')
     pitch_pred.add_argument('--pitch-predictor-filter-size', default=256, type=int,
@@ -119,7 +120,7 @@ def parse_fastpitch_args(parent, add_help=False):
     energy_pred.add_argument('--energy-predictor-n-layers', default=2, type=int,
                             help='Number of conv-1D layers')
 
-    #-----------modified-----------
+    # -----------modified-----------
     cwt_pred = parser.add_argument_group('cwt predictor parameters')
     cwt_pred.add_argument('--cwt-conditioning', action='store_true')
     cwt_pred.add_argument('--cwt-predictor-kernel-size', default=3, type=int,
@@ -130,7 +131,6 @@ def parse_fastpitch_args(parent, add_help=False):
                              help='Pitch probability for energy predictor')
     cwt_pred.add_argument('--cwt-predictor-n-layers', default=2, type=int,
                              help='Number of conv-1D layers')
-
 
     cond = parser.add_argument_group('conditioning parameters')
     cond.add_argument('--pitch-embedding-kernel-size', default=3, type=int,

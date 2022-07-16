@@ -61,35 +61,40 @@ class FastPitchLoss(nn.Module):
         # (B,H,T) => (B,T,H)
         mel_tgt = mel_tgt.transpose(1, 2)
 
-        # loss function for continuous cwt label
-        # if cwt_pred is not None:
-        #     ldiff = cwt_tgt.size(1) - cwt_pred.size(1)  # [batch_size, mel_len]
-        #     cwt_pred = F.pad(cwt_pred, (0,), value=0.0)
-        #     cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
-        #     cwt_loss = (cwt_loss * ).sum() /
-        # else:
-        #     cwt_loss = 0
-
         dur_mask = mask_from_lens(dur_lens, max_len=dur_tgt.size(1))
+        print(f'dur_mask')
         log_dur_tgt = torch.log(dur_tgt.float() + 1)
         loss_fn = F.mse_loss
         dur_pred_loss = loss_fn(log_dur_pred, log_dur_tgt, reduction='none')
         dur_pred_loss = (dur_pred_loss * dur_mask).sum() / dur_mask.sum()  # mask.sum() is for non-zero elements
 
+        # loss function for continuous cwt label
+        if cwt_pred is not None:
+            ldiff = cwt_tgt.size(2) - cwt_pred.size(2)  # [batch_size, 1, text_len]
+            cwt_pred = F.pad(cwt_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
+            cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
+            cwt_loss = (cwt_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
+        else:
+            cwt_loss = 0
+
         ldiff = mel_tgt.size(1) - mel_out.size(1)
         mel_out = F.pad(mel_out, (0, 0, 0, ldiff, 0, 0), value=0.0)
         mel_mask = mel_tgt.ne(0).float()  # A boolean tensor that is True where input is not equal to other and False elsewhere
+        print(f'mel_mask: {mel_mask}')
         loss_fn = F.mse_loss
         mel_loss = loss_fn(mel_out, mel_tgt, reduction='none')
         mel_loss = (mel_loss * mel_mask).sum() / mel_mask.sum()
 
-        ldiff = pitch_tgt.size(2) - pitch_pred.size(2)
-        pitch_pred = F.pad(pitch_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
-        pitch_loss = F.mse_loss(pitch_tgt, pitch_pred, reduction='none')
-        pitch_loss = (pitch_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
+        if pitch_pred is not None:
+            ldiff = pitch_tgt.size(2) - pitch_pred.size(2)
+            pitch_pred = F.pad(pitch_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)  # [batch_size, num_formants, text_len]
+            pitch_loss = F.mse_loss(pitch_tgt, pitch_pred, reduction='none')
+            pitch_loss = (pitch_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
+        else:
+            pitch_loss = 0
 
         if energy_pred is not None:
-            energy_pred = F.pad(energy_pred, (0, ldiff, 0, 0), value=0.0)
+            energy_pred = F.pad(energy_pred, (0, ldiff, 0, 0), value=0.0)  # [batch_size, text_len]
             energy_loss = F.mse_loss(energy_tgt, energy_pred, reduction='none')
             energy_loss = (energy_loss * dur_mask).sum() / dur_mask.sum()
         else:
@@ -103,22 +108,23 @@ class FastPitchLoss(nn.Module):
                 + pitch_loss * self.pitch_predictor_loss_scale
                 + energy_loss * self.energy_predictor_loss_scale
                 + attn_loss * self.attn_loss_scale
-                )  # + cwt_loss * self.cwt_predictor_loss_scale
+                + cwt_loss * self.cwt_predictor_loss_scale
+                )  # ------modified--------
 
         meta = {
             'loss': loss.clone().detach(),
             'mel_loss': mel_loss.clone().detach(),
             'duration_predictor_loss': dur_pred_loss.clone().detach(),
-            'pitch_loss': pitch_loss.clone().detach(),
             'attn_loss': attn_loss.clone().detach(),
             'dur_error': (torch.abs(dur_pred - dur_tgt).sum()
                           / dur_mask.sum()).detach(),
-        }
+        }  # removed: 'pitch_loss': pitch_loss.clone().detach(),
 
-        # if cwt_pred is not None:
-        #     meta['cwt_loss'] =
+        if pitch_pred is not None:
+            meta['pitch_loss'] = pitch_loss.clone().detach()
 
-
+        if cwt_pred is not None:
+            meta['cwt_loss'] = cwt_loss.clone().detach()
 
         if energy_pred is not None:
             meta['energy_loss'] = energy_loss.clone().detach()

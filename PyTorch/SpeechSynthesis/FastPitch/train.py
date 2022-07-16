@@ -441,9 +441,10 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
         'pitch-loss/validation-pitch-loss': val_meta['pitch_loss'].item(),
         'energy-loss/validation-energy-loss': val_meta['energy_loss'].item(),
         'dur-loss/validation-dur-error': val_meta['duration_predictor_loss'].item(),
+        'cwt-loss/validation-cwt-loss': val_meta['cwt_loss'].item(),
         'validation-frames per s': num_frames.item() / val_meta['took'],
         'validation-took': val_meta['took'],
-    }, rank)
+    }, rank)  # ------modified------ add cwt_loss
 
     if was_training:
         model.train()
@@ -630,6 +631,7 @@ def main():
         epoch_pitch_loss = 0.0
         epoch_energy_loss = 0.0
         epoch_dur_loss = 0.0
+        epoch_cwt_loss = 0.0  # ----modified----
         epoch_num_frames = 0
         epoch_frames_per_sec = 0.0
 
@@ -726,6 +728,7 @@ def main():
                 iter_pitch_loss = iter_meta['pitch_loss'].item()
                 iter_energy_loss = iter_meta['energy_loss'].item()
                 iter_dur_loss = iter_meta['duration_predictor_loss'].item()
+                iter_cwt_loss = iter_meta['cwt_loss'].item()  # ---------modified--------
                 iter_time = time.perf_counter() - iter_start_time
                 epoch_frames_per_sec += iter_num_frames / iter_time
                 epoch_loss += iter_loss
@@ -734,6 +737,7 @@ def main():
                 epoch_pitch_loss += iter_pitch_loss
                 epoch_energy_loss += iter_energy_loss
                 epoch_dur_loss += iter_dur_loss
+                epoch_cwt_loss += iter_cwt_loss  # ---------modified--------
 
                 if epoch_iter % 5 == 0:
                     log({
@@ -748,10 +752,11 @@ def main():
                         'pitch-loss/pitch_loss': iter_pitch_loss,
                         'energy-loss/energy_loss': iter_energy_loss,
                         'dur-loss/dur_loss': iter_dur_loss,
+                        'cwt-loss/cwt_loss': iter_cwt_loss,
                         'frames per s': iter_num_frames / iter_time,
                         'took': iter_time,
                         'lrate': optimizer.param_groups[0]['lr'],
-                    }, args.local_rank)
+                    }, args.local_rank)  # add 'cwt-loss/cwt_loss': iter_cwt_loss,
 
                 accumulated_steps = 0
                 iter_loss = 0
@@ -771,6 +776,7 @@ def main():
             'pitch-loss/epoch_pitch_loss': epoch_pitch_loss,
             'energy-loss/epoch_energy_loss': epoch_energy_loss,
             'dur-loss/epoch_dur_loss': epoch_dur_loss,
+            'cwt-loss/epoch_cwt_loss': epoch_cwt_loss,
             'epoch_frames per s': epoch_num_frames / epoch_time,
             'epoch_took': epoch_time,
         }, args.local_rank)

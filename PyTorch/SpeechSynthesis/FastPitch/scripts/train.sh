@@ -22,6 +22,8 @@ export OMP_NUM_THREADS=1
 
 # Train a mixed phoneme/grapheme model
 : ${PHONE:=true}
+# Enable pitch conditioning
+: ${PITCH:=true}
 # Enable energy conditioning
 : ${ENERGY:=true}
 # Enable cwt conditioning
@@ -74,6 +76,7 @@ ARGS+=" --n-speakers $NSPEAKERS"
 [ "$EXPERIMENT_DESC" != "" ]       && ARGS+=" --experiment-desc \"${EXPERIMENT_DESC}\""
 [ "$AMP" = "true" ]                && ARGS+=" --amp"
 [ "$PHONE" = "true" ]              && ARGS+=" --p-arpabet 1.0"
+[ "$PITCH" = "true" ]              && ARGS+=" --pitch-conditioning"
 [ "$ENERGY" = "true" ]             && ARGS+=" --energy-conditioning"
 [ "$CWT" = "true" ]                && ARGS+=" --cwt-conditioning"
 [ "$SEED" != "" ]                  && ARGS+=" --seed $SEED"
