@@ -23,7 +23,7 @@ export OMP_NUM_THREADS=1
 # Train a mixed phoneme/grapheme model
 : ${PHONE:=true}
 # Enable pitch conditioning
-: ${PITCH:=false}
+: ${PITCH:=true}
 # Enable energy conditioning
 : ${ENERGY:=false}
 # Enable cwt conditioning
