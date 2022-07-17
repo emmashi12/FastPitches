@@ -219,9 +219,9 @@ class FastPitch(nn.Module):
                 padding=int((pitch_embedding_kernel_size - 1) / 2))
             # (1, symbols_embedding_dim=384, kernel_size=3, padding=1)
 
-            # Store values precomputed for training data within the model
-            self.register_buffer('pitch_mean', torch.zeros(1))
-            self.register_buffer('pitch_std', torch.zeros(1))
+        # Store values precomputed for training data within the model
+        self.register_buffer('pitch_mean', torch.zeros(1))
+        self.register_buffer('pitch_std', torch.zeros(1))
 
         # -------------modified--------------
         self.cwt_conditioning = cwt_conditioning
