@@ -164,6 +164,10 @@ def parse_args(parser):
                       help='Use mel-spectrograms cache on the disk')  # XXX
     cond.add_argument('--load-cwt-from-disk', action='store_true',
                       help='Use cwt cache on the disk')  # ------modified---------
+    cond.add_argument('--cwt-conditioning', action='store_true')
+    cond.add_argument('--energy-conditioning', action='store_true')
+    cond.add_argument('--pitch-conditioning', action='store_true')
+
 
     audio = parser.add_argument_group('audio parameters')
     audio.add_argument('--max-wav-value', default=32768.0, type=float,
@@ -688,7 +692,7 @@ def main():
                 loss /= args.grad_accumulation
 
             meta = {k: v / args.grad_accumulation
-                    for k, v in meta.items()}
+                    for k, v in meta.items()}  # no energy in meta when conditioning energy
 
             if args.amp:
                 scaler.scale(loss).backward()
@@ -730,6 +734,7 @@ def main():
                 iter_kl_loss = iter_meta['kl_loss'].item()
                 iter_pitch_loss = iter_meta['pitch_loss'].item()
                 iter_energy_loss = iter_meta['energy_loss'].item()
+                # no key 'energy_loss' when energy conditioning is False
                 iter_dur_loss = iter_meta['duration_predictor_loss'].item()
                 iter_cwt_loss = iter_meta['cwt_loss'].item()  # ---------modified--------
                 iter_time = time.perf_counter() - iter_start_time

@@ -73,6 +73,7 @@ class FastPitchLoss(nn.Module):
             ldiff = cwt_tgt.size(2) - cwt_pred.size(2)  # [batch_size, 1, text_len]
             cwt_pred = F.pad(cwt_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
             cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
+            # cwt_loss = F.binary_cross_entropy(cwt_tgt, cwt_pred) binary cross-entropy
             cwt_loss = (cwt_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
         else:
             cwt_loss = 0

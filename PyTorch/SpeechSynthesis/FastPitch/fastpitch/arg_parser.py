@@ -123,6 +123,7 @@ def parse_fastpitch_args(parent, add_help=False):
     # -----------modified-----------
     cwt_pred = parser.add_argument_group('cwt predictor parameters')
     cwt_pred.add_argument('--cwt-conditioning', action='store_true')
+    cwt_pred.add_argument('--cwt-continuous', action='store_true')
     cwt_pred.add_argument('--cwt-predictor-kernel-size', default=3, type=int,
                              help='Pitch predictor conv-1D kernel size')
     cwt_pred.add_argument('--cwt-predictor-filter-size', default=256, type=int,

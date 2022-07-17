@@ -87,10 +87,11 @@ def average_pitch(pitch, durs):
 
 class TemporalPredictor(nn.Module):
     """Predicts a single float per each temporal location"""
-    #for pitch, energy and duration (maybe spectral tilt)
+    # for pitch, energy and duration (maybe spectral tilt)
     def __init__(self, input_size, filter_size, kernel_size, dropout,
                  n_layers=2, n_predictions=1):
         super(TemporalPredictor, self).__init__()
+        # (in_fft_output_size=384, filter_size=256, kernel_size=3, dropout=0.1, n_layers=2, n_predictions=1)
 
         self.layers = nn.Sequential(*[
             ConvReLUNorm(input_size if i == 0 else filter_size, filter_size,
@@ -104,6 +105,30 @@ class TemporalPredictor(nn.Module):
         out = enc_out * enc_out_mask
         out = self.layers(out.transpose(1, 2)).transpose(1, 2)
         out = self.fc(out) * enc_out_mask
+        return out
+
+
+class BinaryClassification(nn.Module):
+    """Predicts a categorical label per each temporal location"""
+    # for categorical cwt labels
+    def __init__(self, input_size, filter_size, kernel_size, dropout,
+                 n_layers=2, n_predictions=1):
+        super(BinaryClassification, self).__init__()
+        self.layers = nn.Sequential(*[
+            ConvReLUNorm(input_size if i == 0 else filter_size, filter_size,
+                         kernel_size=kernel_size, dropout=dropout)
+            for i in range(n_layers)]
+        )  # in_channels, out_channels, kernel_size=1, dropout=0.0
+        self.n_predictions = n_predictions
+        self.sigmoid = nn.sigmoid()
+        self.fc = nn.Linear(filter_size, self.n_predictions, bias=True)
+        # self.lastcnn = ConvReLUNorm(filter_size, self.n_predictions, kernel_size=filter_size)
+
+    def forward(self, enc_out, enc_out_mask):
+        out = enc_out * enc_out_mask
+        out = self.layers(out.transpose(1, 2)).transpose(1, 2)
+        out = self.sigmoid(self.fc(out)) * enc_out_mask
+        # out = self.sigmoid(self.lastcnn(out)) * enc_out_mask
         return out
 
 
@@ -131,7 +156,7 @@ class FastPitch(nn.Module):
                  cwt_conditioning,
                  cwt_predictor_kernel_size, cwt_predictor_filter_size,
                  p_cwt_predictor_dropout, cwt_predictor_n_layers,
-                 cwt_embedding_kernel_size,
+                 cwt_embedding_kernel_size, cwt_continuous,
                  n_speakers, speaker_emb_weight, pitch_conditioning_formants=1):
         super(FastPitch, self).__init__()
 
@@ -200,22 +225,24 @@ class FastPitch(nn.Module):
 
         # -------------modified--------------
         self.cwt_conditioning = cwt_conditioning
+        self.cwt_continuous = cwt_continuous
         if cwt_conditioning:
             print("Prominence Predictor")
-            self.cwt_predictor = TemporalPredictor(
-                in_fft_output_size,
-                filter_size=cwt_predictor_filter_size,
-                kernel_size=cwt_predictor_kernel_size,
-                dropout=p_cwt_predictor_dropout,
-                n_layers=cwt_predictor_n_layers,
-                n_predictions=1)
-            print("cwt embedding")
+            if cwt_continuous:
+                self.cwt_predictor = TemporalPredictor(
+                    in_fft_output_size,
+                    filter_size=cwt_predictor_filter_size,
+                    kernel_size=cwt_predictor_kernel_size,
+                    dropout=p_cwt_predictor_dropout,
+                    n_layers=cwt_predictor_n_layers,
+                    n_predictions=1)
+                print("cwt embedding")
 
-            self.cwt_emb = nn.Conv1d(
-                1, symbols_embedding_dim,
-                kernel_size=cwt_embedding_kernel_size,
-                padding=int((cwt_embedding_kernel_size - 1) / 2))  # for continuous label
-            # symbols_embedding_dim=384, filter_size=256, kernel_size=3
+                self.cwt_emb = nn.Conv1d(
+                    1, symbols_embedding_dim,
+                    kernel_size=cwt_embedding_kernel_size,
+                    padding=int((cwt_embedding_kernel_size - 1) / 2))  # for continuous label
+                # symbols_embedding_dim=384, filter_size=256, kernel_size=3
 
             # self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)  # for categorical label
 
