@@ -28,7 +28,7 @@ export OMP_NUM_THREADS=1
 : ${ENERGY:=false}
 # Enable cwt conditioning
 : ${CWT:=false}
-: ${CWT_LABEL:=false}
+: ${CWT_LABEL:=true}
 : ${CWT_CON:=false}
 : ${TEXT_CLEANERS:=english_cleaners_v2}
 # Add dummy space prefix/suffix is audio is not precisely trimmed
