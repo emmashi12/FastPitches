@@ -396,6 +396,9 @@ def log_validation_batch(x, y_pred, rank):
     if y_pred[6] is None:
         pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
+    elif y_pred[4] is None:
+        pred_specs_keys = ['mel_out', 'attn_hard_dur']
+        tgt_specs_keys = ['mel_padded', 'attn_hard_dur']
     else:
         pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur']
