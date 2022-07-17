@@ -674,7 +674,7 @@ def main():
                     if args.kl_loss_start_epoch == epoch and epoch_iter == 1:
                         print('Begin hard_attn loss')
 
-                    _, _, _, _, _, _, energy_pred, _, attn_soft, attn_hard, _, _, _, _ = y_pred
+                    _, _, _, _, pitch_pred, _, energy_pred, _, attn_soft, attn_hard, _, _, cwt_pred, _ = y_pred
                     binarization_loss = attention_kl_loss(attn_hard, attn_soft)
                     kl_weight = min((epoch - args.kl_loss_start_epoch) / args.kl_loss_warmup_epochs, 1.0) * args.kl_loss_weight
                     meta['kl_loss'] = binarization_loss.clone().detach() * kl_weight
@@ -728,21 +728,23 @@ def main():
 
                 iter_mel_loss = iter_meta['mel_loss'].item()
                 iter_kl_loss = iter_meta['kl_loss'].item()
-                iter_pitch_loss = iter_meta['pitch_loss'].item()
+                if pitch_pred is not None:
+                    iter_pitch_loss = iter_meta['pitch_loss'].item()  # -----modified------
+                    epoch_pitch_loss += iter_pitch_loss
                 if energy_pred is not None:
                     iter_energy_loss = iter_meta['energy_loss'].item()  # -----modified------
                     epoch_energy_loss += iter_energy_loss
                 # no key 'energy_loss' when energy conditioning is False
                 iter_dur_loss = iter_meta['duration_predictor_loss'].item()
-                iter_cwt_loss = iter_meta['cwt_loss'].item()  # ---------modified--------
+                if cwt_pred is not None:
+                    iter_cwt_loss = iter_meta['cwt_loss'].item()  # ---------modified--------
+                    epoch_cwt_loss += iter_cwt_loss  # ---------modified--------
                 iter_time = time.perf_counter() - iter_start_time
                 epoch_frames_per_sec += iter_num_frames / iter_time
                 epoch_loss += iter_loss
                 epoch_num_frames += iter_num_frames
                 epoch_mel_loss += iter_mel_loss
-                epoch_pitch_loss += iter_pitch_loss
                 epoch_dur_loss += iter_dur_loss
-                epoch_cwt_loss += iter_cwt_loss  # ---------modified--------
 
                 if epoch_iter % 5 == 0:
                     log({
@@ -757,7 +759,7 @@ def main():
                         'pitch-loss/pitch_loss': iter_pitch_loss,
                         # 'energy-loss/energy_loss': iter_energy_loss,
                         'dur-loss/dur_loss': iter_dur_loss,
-                        'cwt-loss/cwt_loss': iter_cwt_loss,
+                        # 'cwt-loss/cwt_loss': iter_cwt_loss,
                         'frames per s': iter_num_frames / iter_time,
                         'took': iter_time,
                         'lrate': optimizer.param_groups[0]['lr'],
@@ -781,7 +783,7 @@ def main():
             'pitch-loss/epoch_pitch_loss': epoch_pitch_loss,
             # 'energy-loss/epoch_energy_loss': epoch_energy_loss,
             'dur-loss/epoch_dur_loss': epoch_dur_loss,
-            'cwt-loss/epoch_cwt_loss': epoch_cwt_loss,
+            # 'cwt-loss/epoch_cwt_loss': epoch_cwt_loss,
             'epoch_frames per s': epoch_num_frames / epoch_time,
             'epoch_took': epoch_time,
         }, args.local_rank)
