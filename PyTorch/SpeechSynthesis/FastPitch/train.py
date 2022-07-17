@@ -164,10 +164,6 @@ def parse_args(parser):
                       help='Use mel-spectrograms cache on the disk')  # XXX
     cond.add_argument('--load-cwt-from-disk', action='store_true',
                       help='Use cwt cache on the disk')  # ------modified---------
-    cond.add_argument('--cwt-conditioning', action='store_true')
-    cond.add_argument('--energy-conditioning', action='store_true')
-    cond.add_argument('--pitch-conditioning', action='store_true')
-
 
     audio = parser.add_argument_group('audio parameters')
     audio.add_argument('--max-wav-value', default=32768.0, type=float,
