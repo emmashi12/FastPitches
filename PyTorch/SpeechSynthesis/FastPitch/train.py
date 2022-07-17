@@ -390,10 +390,12 @@ def log_validation_batch(x, y_pred, rank):
     if y_pred[6] is None:
         validation_dict.pop('energy_pred', None)  # pop energy ------modified-------
     if y_pred[4] is None:
+        print('no pitch')
         validation_dict.pop('pitch_pred', None)  # pop pitch ------modified-------
     log(validation_dict, rank)  # something in here returns a warning
 
     if y_pred[4] is None:
+        print('No pitch predictor')
         pred_specs_keys = ['mel_out', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'attn_hard_dur']
     elif y_pred[6] is None:
