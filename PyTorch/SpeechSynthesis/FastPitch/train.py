@@ -387,10 +387,18 @@ def log_validation_batch(x, y_pred, rank):
                                list(x) + list(y_pred)))
     # dec mask contains booleans, which to be logged need to be converted to integers
     validation_dict.pop('dec_mask', None)
+    if y_pred[6] is None:
+        validation_dict.pop('energy_pred', None)  # pop energy ------modified-------
+    if y_pred[4] is None:
+        validation_dict.pop('pitch_pred', None)  # pop pitch ------modified-------
     log(validation_dict, rank)  # something in here returns a warning
 
-    pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur']
-    tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur']
+    if y_pred[6] is None:
+        pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
+        tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
+    else:
+        pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur']
+        tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur']
     plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
                      [validation_dict[key] for key in tgt_specs_keys]], rank)
 
@@ -422,8 +430,8 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             y_pred = model(x)
 
             loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum')
-            if i % 5 == 0:
-                log_validation_batch(x, y_pred, rank)
+            # if i % 5 == 0:
+            #     log_validation_batch(x, y_pred, rank)
 
             if distributed_run:
                 for k, v in meta.items():
@@ -443,9 +451,9 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
         'loss/validation-loss': val_meta['loss'].item(),
         'mel-loss/validation-mel-loss': val_meta['mel_loss'].item(),
         'pitch-loss/validation-pitch-loss': val_meta['pitch_loss'].item(),
-        'energy-loss/validation-energy-loss': val_meta['energy_loss'].item(),
+        # 'energy-loss/validation-energy-loss': val_meta['energy_loss'].item(),
         'dur-loss/validation-dur-error': val_meta['duration_predictor_loss'].item(),
-        'cwt-loss/validation-cwt-loss': val_meta['cwt_loss'].item(),
+        # 'cwt-loss/validation-cwt-loss': val_meta['cwt_loss'].item(),
         'validation-frames per s': num_frames.item() / val_meta['took'],
         'validation-took': val_meta['took'],
     }, rank)  # ------modified------ add cwt_loss
