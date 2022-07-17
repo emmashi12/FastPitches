@@ -164,7 +164,7 @@ def parse_args(parser):
                       help='Use mel-spectrograms cache on the disk')  # XXX
     cond.add_argument('--load-cwt-from-disk', action='store_true',
                       help='Use cwt cache on the disk')  # ------modified---------
-    cond.add_argument('--cwt_label', action='store_true',
+    cond.add_argument('--cwt_labels', action='store_true',
                       help='Get text_info to upsample cwt label')  # ------modified---------
 
     audio = parser.add_argument_group('audio parameters')
