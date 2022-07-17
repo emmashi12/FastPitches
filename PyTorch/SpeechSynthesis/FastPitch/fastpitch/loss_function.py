@@ -70,6 +70,8 @@ class FastPitchLoss(nn.Module):
 
         # loss function for continuous cwt label
         if cwt_pred is not None:
+            print(f'cwt_pred shape: {cwt_pred.shape}')
+            print(f'cwt_tgt shape: {cwt_tgt.shape}')
             ldiff = cwt_tgt.size(2) - cwt_pred.size(2)  # [batch_size, 1, text_len]
             cwt_pred = F.pad(cwt_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
             cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
