@@ -788,7 +788,7 @@ def main():
                            epoch_time)
 
         validate(model, criterion, valset, args.batch_size, collate_fn,
-                 distributed_run, batch_to_gpu, args.local_rank)
+                 distributed_run, batch_to_gpu, args.local_rank)  # what happens here?
 
         if args.ema_decay > 0:
             validate(ema_model, criterion, valset, args.batch_size, collate_fn,

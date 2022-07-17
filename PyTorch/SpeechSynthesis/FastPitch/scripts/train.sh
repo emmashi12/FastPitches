@@ -25,10 +25,10 @@ export OMP_NUM_THREADS=1
 # Enable pitch conditioning
 : ${PITCH:=true}
 # Enable energy conditioning
-: ${ENERGY:=true}
+: ${ENERGY:=false}
 # Enable cwt conditioning
-: ${CWT:=true}
-: ${CWT_CON:=true}
+: ${CWT:=false}
+: ${CWT_CON:=false}
 : ${TEXT_CLEANERS:=english_cleaners_v2}
 # Add dummy space prefix/suffix is audio is not precisely trimmed
 : ${APPEND_SPACES:=false}

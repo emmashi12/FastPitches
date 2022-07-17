@@ -41,7 +41,7 @@ from fastpitch.transformer import FFTransformer
 def regulate_len(durations, enc_out, pace: float = 1.0,
                  mel_max_len: Optional[int] = None):
     """If target=None, then predicted durations are applied"""
-    #up sampling the data
+    #up sampling the frame
     dtype = enc_out.dtype
     reps = durations.float() / pace
     reps = (reps + 0.5).long()
