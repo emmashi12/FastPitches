@@ -342,7 +342,7 @@ def plot_batch_mels(pred_tgt_lists, rank):
     regulated_features = []
     # prediction: mel, pitch, energy
     # target: mel, pitch, energy
-    # print(f'pred_tgt_lists: {pred_tgt_lists}')
+    print(f'pred_tgt_lists: {pred_tgt_lists}')
     for mel_pitch_energy in pred_tgt_lists:
         mels = mel_pitch_energy[0]
         if mels.size(dim=2) == 80:  # tgt and pred mel have diff dimension order
@@ -809,6 +809,8 @@ def main():
 
     if args.local_rank == 0:
         wandb.finish()
+
+    print("training done")
 
 
 if __name__ == '__main__':
