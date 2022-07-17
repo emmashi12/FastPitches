@@ -164,6 +164,8 @@ def parse_args(parser):
                       help='Use mel-spectrograms cache on the disk')  # XXX
     cond.add_argument('--load-cwt-from-disk', action='store_true',
                       help='Use cwt cache on the disk')  # ------modified---------
+    cond.add_argument('--cwt_label', action='store_true',
+                      help='Get text_info to upsample cwt label')  # ------modified---------
 
     audio = parser.add_argument_group('audio parameters')
     audio.add_argument('--max-wav-value', default=32768.0, type=float,
@@ -430,8 +432,8 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             y_pred = model(x)
 
             loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum')
-            # if i % 5 == 0:
-            #     log_validation_batch(x, y_pred, rank)
+            if i % 5 == 0:
+                log_validation_batch(x, y_pred, rank)
 
             if distributed_run:
                 for k, v in meta.items():
