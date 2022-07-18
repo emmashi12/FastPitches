@@ -278,19 +278,25 @@ def load_checkpoint(args, model, ema_model, optimizer, scaler, epoch,
 def plot_mels(pred_tgt_lists):
     # from FastSpeech2: https://github.com/ming024/FastSpeech2
     fig, axes = plt.subplots(2, 1, squeeze=False)
+    # (nrows=1, ncols=1, *, squeeze=True, subplot_kw=None, gridspec_kw=None, **fig_kw)
     titles = ["Synthetized Spectrogram", "Ground-Truth Spectrogram"]
     # make local so we can access data to plot
     local_prep_tgts = []
     for lizt in pred_tgt_lists:
         local_prep_tgts.append([tenzor.cpu().numpy() for tenzor in lizt])
+    # [
+    #             [array[i] for array in regulated_features[0]],
+    #             [array[i] for array in regulated_features[1]]
+    #         ]
 
-    # this is just for the axes limits
-    pitch_max = max([feature_list[1].max() for feature_list in local_prep_tgts])
-    energy_max = max([feature_list[2].max() for feature_list in local_prep_tgts])
-    energy_min = min([feature_list[2].min() for feature_list in local_prep_tgts])
-    pitch_std = max([feature_list[2].std() for feature_list in local_prep_tgts])
-    pitch_mean = max([feature_list[2].mean() for feature_list in local_prep_tgts])
-    pitch_max = pitch_max * pitch_std + pitch_mean
+    if len(pred_tgt_lists[0]) == 4 or len(pred_tgt_lists[0]) == 5:  # -----modified------
+        # this is just for the axes limits
+        pitch_max = max([feature_list[1].max() for feature_list in local_prep_tgts])
+        energy_max = max([feature_list[2].max() for feature_list in local_prep_tgts])
+        energy_min = min([feature_list[2].min() for feature_list in local_prep_tgts])
+        pitch_std = max([feature_list[2].std() for feature_list in local_prep_tgts])
+        pitch_mean = max([feature_list[2].mean() for feature_list in local_prep_tgts])
+        pitch_max = pitch_max * pitch_std + pitch_mean
 
     def add_axis(fig, old_ax):
         ax = fig.add_axes(old_ax.get_position(), anchor="W")
@@ -368,10 +374,10 @@ def plot_batch_mels(pred_tgt_lists, rank):
 
     batch_sizes = [feature.size(dim=0)
                    for pred_tgt in regulated_features
-                   for feature in pred_tgt]
+                   for feature in pred_tgt]  # now batch_sizes is [8 ,8]
     assert len(set(batch_sizes)) == 1
 
-    for i in range(batch_sizes[0]):
+    for i in range(batch_sizes[0]):  # range(8)
         fig = plot_mels([
             [array[i] for array in regulated_features[0]],
             [array[i] for array in regulated_features[1]]
@@ -424,8 +430,8 @@ def log_validation_batch(x, y_pred, rank):
         pred_specs_keys = ['mel_out', 'attn_hard_dur', 'cwt_pred']
         tgt_specs_keys = ['mel_padded', 'attn_hard_dur', 'cwt_tgt']
 
-    # plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
-    #                  [validation_dict[key] for key in tgt_specs_keys]], rank)
+    plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
+                     [validation_dict[key] for key in tgt_specs_keys]], rank)
 
 
 def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
@@ -795,7 +801,7 @@ def main():
                 epoch_dur_loss += iter_dur_loss
 
                 if epoch_iter % 5 == 0:
-                    log({
+                    iter_loss = {
                         'epoch': epoch,
                         'epoch_iter': epoch_iter,
                         'num_iters': num_iters,
@@ -804,14 +810,18 @@ def main():
                         'mel-loss/mel_loss': iter_mel_loss,
                         'kl_loss': iter_kl_loss,
                         'kl_weight': kl_weight,
-                        # 'pitch-loss/pitch_loss': iter_pitch_loss,
-                        # 'energy-loss/energy_loss': iter_energy_loss,
                         'dur-loss/dur_loss': iter_dur_loss,
-                        # 'cwt-loss/cwt_loss': iter_cwt_loss,
                         'frames per s': iter_num_frames / iter_time,
                         'took': iter_time,
                         'lrate': optimizer.param_groups[0]['lr'],
-                    }, args.local_rank)  # add 'cwt-loss/cwt_loss': iter_cwt_loss,
+                    }
+                    if pitch_pred is not None:
+                        iter_loss['pitch-loss/pitch_loss'] = iter_pitch_loss
+                    if energy_pred is not None:
+                        iter_loss['energy-loss/energy_loss'] = iter_energy_loss
+                    if cwt_pred is not None:
+                        iter_loss['cwt-loss/cwt_loss'] = iter_cwt_loss
+                    log(iter_loss, args.local_rank)
 
                 accumulated_steps = 0
                 iter_loss = 0
@@ -825,17 +835,22 @@ def main():
         epoch_time = time.perf_counter() - epoch_start_time
 
         print('collecting log information for loss')
-        log({
+        # --------modified---------
+        log_epoch_loss = {
             'epoch': epoch,
             'loss/epoch_loss': epoch_loss,
             'mel-loss/epoch_mel_loss': epoch_mel_loss,
-            # 'pitch-loss/epoch_pitch_loss': epoch_pitch_loss,
-            # 'energy-loss/epoch_energy_loss': epoch_energy_loss,
             'dur-loss/epoch_dur_loss': epoch_dur_loss,
-            # 'cwt-loss/epoch_cwt_loss': epoch_cwt_loss,
             'epoch_frames per s': epoch_num_frames / epoch_time,
             'epoch_took': epoch_time,
-        }, args.local_rank)
+        }
+        if pitch_pred is not None:
+            iter_loss['pitch-loss/epoch_pitch_loss'] = epoch_pitch_loss
+        if energy_pred is not None:
+            iter_loss['energy-loss/epoch_energy_loss'] = epoch_energy_loss
+        if cwt_pred is not None:
+            iter_loss['cwt-loss/epoch_cwt_loss'] = epoch_cwt_loss
+        log(log_epoch_loss, args.local_rank)
         bmark_stats.update(epoch_num_frames, epoch_loss, epoch_mel_loss,
                            epoch_time)
 
