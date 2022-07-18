@@ -451,8 +451,8 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             print(f'mel_tgt shape in x: {x[2].shape}')
 
             loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum')
-            if i % 5 == 0:
-                log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
+            # if i % 5 == 0:
+            #     log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
 
             if distributed_run:
                 for k, v in meta.items():
