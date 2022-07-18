@@ -405,6 +405,7 @@ def log_validation_batch(x, y_pred, rank):
         validation_dict.pop('cwt_pred', None)  # pop cwt ------modified-------
     log(validation_dict, rank)  # something in here returns a warning
     print('mel_out shape in validation dict:', validation_dict['mel_out'].shape)
+    print('mel_padded shape in validation dict:', validation_dict['mel_padded'].shape)
 
     # ----------modified----------
     if y_pred[6] is None:
