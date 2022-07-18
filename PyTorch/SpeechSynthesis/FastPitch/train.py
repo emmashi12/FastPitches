@@ -423,8 +423,9 @@ def log_validation_batch(x, y_pred, rank):
     else:
         pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur', 'cwt_pred']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur', 'cwt_tgt']
-    plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
-                     [validation_dict[key] for key in tgt_specs_keys]], rank)
+
+    # plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
+    #                  [validation_dict[key] for key in tgt_specs_keys]], rank)
 
 
 def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
@@ -456,8 +457,8 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             print(f'mel_tgt shape in x: {x[2].shape}')
 
             loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum')
-            # if i % 5 == 0:
-            #     log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
+            if i % 5 == 0:
+                log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
 
             if distributed_run:
                 for k, v in meta.items():
