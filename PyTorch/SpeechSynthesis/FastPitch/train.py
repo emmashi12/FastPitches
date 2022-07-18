@@ -352,7 +352,7 @@ def plot_batch_mels(pred_tgt_lists, rank):
         if mels.size(dim=2) == 80:  # tgt and pred mel have diff dimension order
             mels = mels.permute(0, 2, 1)
         mel_lens = mel_pitch_energy[-1]
-        if len(mel_pitch_energy) == 4:
+        if len(mel_pitch_energy) == 4 or len(mel_pitch_energy) == 5:  # predicting pitch and energy
             # reverse regulation for plotting: for every mel frame get pitch+energy
             new_pitch = regulate_len(mel_lens,
                                      mel_pitch_energy[1].permute(0, 2, 1))[0]
@@ -363,11 +363,17 @@ def plot_batch_mels(pred_tgt_lists, rank):
             regulated_features.append([mels,
                                        new_pitch.squeeze(axis=2),
                                        new_energy.squeeze(axis=2)])
+        elif len(mel_pitch_energy) == 2:
+            regulated_features.append([mels])
 
     batch_sizes = [feature.size(dim=0)
                    for pred_tgt in regulated_features
                    for feature in pred_tgt]
     assert len(set(batch_sizes)) == 1
+
+    for pred_tgt in regulated_features:
+        for feature in pred_tgt:
+            batch_sizes = feature.size(dim=0)
 
     for i in range(batch_sizes[0]):
         fig = plot_mels([
@@ -408,16 +414,19 @@ def log_validation_batch(x, y_pred, rank):
     print('mel_padded shape in validation dict:', validation_dict['mel_padded'].shape)
 
     # ----------modified----------
-    if y_pred[6] is None:
+    if y_pred[6] is None:  # no energy
         pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
-        if y_pred[4] is None:
+        if y_pred[4] is None:  # no pitch/energy
             print('No pitch predictor')
             pred_specs_keys = ['mel_out', 'attn_hard_dur']
             tgt_specs_keys = ['mel_padded', 'attn_hard_dur']
-    else:
+    elif y_pred[-2] is None:
         pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur']
+    else:
+        pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur', 'cwt_pred']
+        tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur', 'cwt_tgt']
     plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
                      [validation_dict[key] for key in tgt_specs_keys]], rank)
 
