@@ -388,12 +388,12 @@ class TTSDataset(torch.utils.data.Dataset):
             cwt_index = 0
 
             for c in range(len(text_words)):
-                if words.search(text_words[i]):  # upsample cwt label
+                if words.search(text_words[c]):  # upsample cwt label
                     t = [cwt_list[cwt_index]] * text_symbols[c]
                     upsampled += t
                     cwt_index += 1
                 else:
-                    t = [0.0] * text_symbols[i]  # upsample cwt label for non-words
+                    t = [0.0] * text_symbols[c]  # upsample cwt label for non-words
                     upsampled += t
 
             # print(upsampled)
