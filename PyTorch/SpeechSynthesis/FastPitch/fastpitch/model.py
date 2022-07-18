@@ -418,7 +418,7 @@ class FastPitch(nn.Module):
         # Output FFT
         dec_out, dec_mask = self.decoder(len_regulated, dec_lens)  # dec for decoder
         mel_out = self.proj(dec_out)
-        # print(f'mel_out shape: {mel_out.shape}')
+        print(f'mel_out shape: {mel_out.shape}')
         return (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred,
                 pitch_tgt, energy_pred, energy_tgt, attn_soft, attn_hard,
                 attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt)  # add cwt_tgt and cwt_pred
