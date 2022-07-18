@@ -242,7 +242,7 @@ class TTSDataset(torch.utils.data.Dataset):
         text, text_info = self.get_text(text)
         # print(f'text shape: {text.shape}')
         pitch = self.get_pitch(index, mel.size(-1))
-        print(f'pitch shape: {pitch.shape}')
+        # print(f'pitch shape: {pitch.shape}')
         energy = torch.norm(mel.float(), dim=0, p=2)
         attn_prior = self.get_prior(index, mel.shape[1], text.shape[0])
         if self.cwt_label is True:
@@ -381,7 +381,7 @@ class TTSDataset(torch.utils.data.Dataset):
             text_symbols = [x[1] for x in text_info]
             text_words = [x[0] for x in text_info]
             total_symbols = sum(text_symbols)
-            print(total_symbols)
+            # print(total_symbols)
 
             upsampled = []
             words = re.compile('\w+')  # match for words
@@ -397,7 +397,7 @@ class TTSDataset(torch.utils.data.Dataset):
                     upsampled += t
 
             # print(upsampled)
-            print(len(upsampled))
+            # print(len(upsampled))
             cwt_tensor = torch.LongTensor(upsampled)  # convert back to tensor
             # print(cwt_tensor)
             assert list(cwt_tensor.size())[0] == total_symbols

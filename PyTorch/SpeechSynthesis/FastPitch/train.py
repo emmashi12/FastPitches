@@ -387,6 +387,9 @@ def log_validation_batch(x, y_pred, rank):
                      'pitch_pred', 'pitch_tgt', 'energy_pred',
                      'energy_tgt', 'attn_soft', 'attn_hard',
                      'attn_hard_dur', 'attn_logprob', 'cwt_pred', 'cwt_tgt']
+    # (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred,
+    #  pitch_tgt, energy_pred, energy_tgt, attn_soft, attn_hard,
+    #  attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt)
 
     validation_dict = dict(zip(x_fields + y_pred_fields,
                                list(x) + list(y_pred)))
@@ -444,6 +447,7 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             #  attn_soft, attn_hard, attn_hard_dur, attn_logprob)
             y_pred = model(x)
             print(f'mel_out shape in y_pred: {y_pred[0].shape}')
+            print(f'mel_tgt shape in x: {x[2].shape}')
 
             loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum')
             if i % 5 == 0:
