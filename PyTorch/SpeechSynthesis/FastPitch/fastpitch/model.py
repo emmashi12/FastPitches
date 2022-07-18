@@ -308,8 +308,8 @@ class FastPitch(nn.Module):
          speaker, attn_prior, audiopaths, cwt_tgt) = inputs  # --------modified--------
         # print(f'inputs shape: {inputs.shape}')
         # print(f'cwt_tgt shape: {cwt_tgt.shape}')
-        print(f'mel_tgt shape: {mel_tgt.shape}')
-        print(f'pitch_dense: {pitch_dense}')
+        # print(f'mel_tgt shape: {mel_tgt.shape}')
+        # print(f'pitch_dense: {pitch_dense}')
 
         # inputs: [16, 140] [batch_size, text_len]
         # mel_tgt: [batch_size, mel-channel, mel_len]
@@ -363,7 +363,7 @@ class FastPitch(nn.Module):
         if self.cwt_conditioning:
             print("cwt")
             cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-            print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, 1, text_len], predicting continuous number now
+            # print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, 1, text_len], predicting continuous number now
             # print(cwt_pred)
             if use_gt_cwt and cwt_tgt is not None:
                 cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
@@ -377,14 +377,14 @@ class FastPitch(nn.Module):
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
-        print(f'log_dur_pred shape: {log_dur_pred.shape}')
+        # print(f'log_dur_pred shape: {log_dur_pred.shape}')
         dur_pred = torch.clamp(torch.exp(log_dur_pred) - 1, 0, max_duration)
 
         # Predict pitch (add pitch conditioning)
         if self.pitch_conditioning:
             print("Model is predicting pitch")
             pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1)
-            print(f'pitch_pred shape: {pitch_pred.shape}')  # [batch_size, num_formants, text_len]
+            # print(f'pitch_pred shape: {pitch_pred.shape}')  # [batch_size, num_formants, text_len]
 
             # Average pitch over characters
             pitch_tgt = average_pitch(pitch_dense, dur_tgt)
