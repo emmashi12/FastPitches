@@ -350,14 +350,17 @@ def plot_batch_mels(pred_tgt_lists, rank):
         if mels.size(dim=2) == 80:  # tgt and pred mel have diff dimension order
             mels = mels.permute(0, 2, 1)
         mel_lens = mel_pitch_energy[-1]
-        # reverse regulation for plotting: for every mel frame get pitch+energy
-        new_pitch = regulate_len(mel_lens,
-                                 mel_pitch_energy[1].permute(0, 2, 1))[0]
-        new_energy = regulate_len(mel_lens,
-                                  mel_pitch_energy[2].unsqueeze(dim=-1))[0]
-        regulated_features.append([mels,
-                                   new_pitch.squeeze(axis=2),
-                                   new_energy.squeeze(axis=2)])
+        if len(mel_pitch_energy) == 4:
+            # reverse regulation for plotting: for every mel frame get pitch+energy
+            new_pitch = regulate_len(mel_lens,
+                                     mel_pitch_energy[1].permute(0, 2, 1))[0]
+            # durations = mel_lens, enc_out = mel_pitch_energy[1].permute(0, 2, 1)
+            # regulate_len() returns enc_rep, dec_lens
+            new_energy = regulate_len(mel_lens,
+                                      mel_pitch_energy[2].unsqueeze(dim=-1))[0]
+            regulated_features.append([mels,
+                                       new_pitch.squeeze(axis=2),
+                                       new_energy.squeeze(axis=2)])
 
     batch_sizes = [feature.size(dim=0)
                    for pred_tgt in regulated_features
@@ -392,6 +395,9 @@ def log_validation_batch(x, y_pred, rank):
     if y_pred[4] is None:
         print('no pitch')
         validation_dict.pop('pitch_pred', None)  # pop pitch ------modified-------
+    if y_pred[-2] is None:
+        print('no cwt')
+        validation_dict.pop('cwt_pred', None)  # pop cwt ------modified-------
     log(validation_dict, rank)  # something in here returns a warning
 
     if y_pred[6] is None:
