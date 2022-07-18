@@ -702,6 +702,7 @@ def main():
             x, y, num_frames = batch_to_gpu(batch)
 
             with torch.cuda.amp.autocast(enabled=args.amp):
+                print("start training")
                 y_pred = model(x) #forward pass starts (calling the model)
                 loss, meta = criterion(y_pred, y)  #
 
@@ -813,6 +814,7 @@ def main():
         epoch_mel_loss /= epoch_iter
         epoch_time = time.perf_counter() - epoch_start_time
 
+        print('collecting log information for loss')
         log({
             'epoch': epoch,
             'loss/epoch_loss': epoch_loss,
@@ -827,7 +829,7 @@ def main():
         bmark_stats.update(epoch_num_frames, epoch_loss, epoch_mel_loss,
                            epoch_time)
 
-        print("validate")
+        print("Validate step should start here")
         validate(model, criterion, valset, args.batch_size, collate_fn,
                  distributed_run, batch_to_gpu, args.local_rank)  # what happens here?
 

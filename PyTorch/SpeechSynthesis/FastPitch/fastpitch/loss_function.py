@@ -62,7 +62,7 @@ class FastPitchLoss(nn.Module):
         mel_tgt = mel_tgt.transpose(1, 2)
 
         dur_mask = mask_from_lens(dur_lens, max_len=dur_tgt.size(1))
-        print(f'dur_mask')
+        # print(f'dur_mask')
         log_dur_tgt = torch.log(dur_tgt.float() + 1)
         loss_fn = F.mse_loss
         dur_pred_loss = loss_fn(log_dur_pred, log_dur_tgt, reduction='none')
