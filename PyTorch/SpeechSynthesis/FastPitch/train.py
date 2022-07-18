@@ -156,9 +156,9 @@ def parse_args(parser):
                       help='Calculate pitch on the fly during trainig')
     cond.add_argument('--pitch-online-dir', type=str, default=None,
                       help='A directory for storing pitch calculated on-line')
-    cond.add_argument('--pitch-mean', type=float, default=214.72203,
+    cond.add_argument('--pitch-mean', type=float, default=None,
                       help='Normalization value for pitch')
-    cond.add_argument('--pitch-std', type=float, default=65.72038,
+    cond.add_argument('--pitch-std', type=float, default=None,
                       help='Normalization value for pitch')
     cond.add_argument('--load-mel-from-disk', action='store_true',
                       help='Use mel-spectrograms cache on the disk')  # XXX
@@ -599,8 +599,9 @@ def main():
         wandb.watch(model, log='all')
 
     # Store pitch mean/std as params to translate from Hz during inference
-    model.pitch_mean[0] = args.pitch_mean
-    model.pitch_std[0] = args.pitch_std
+    if args.pitch_mean is not None:
+        model.pitch_mean[0] = args.pitch_mean
+        model.pitch_std[0] = args.pitch_std
     log({'pitch_mean': args.pitch_mean, 'pitch_std': args.pitch_std},
         args.local_rank)
 

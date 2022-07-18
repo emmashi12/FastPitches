@@ -23,6 +23,7 @@ export OMP_NUM_THREADS=1
 : ${PHONE:=true}
 # Enable pitch conditioning
 : ${PITCH:=false}
+: ${NORMALISE:=false}
 # Enable energy conditioning
 : ${ENERGY:=false}
 # Enable cwt conditioning
@@ -88,6 +89,10 @@ ARGS+=" --n-speakers $NSPEAKERS"
 [ "$PITCH_ONLINE_METHOD" != "" ]   && ARGS+=" --pitch-online-method $PITCH_ONLINE_METHOD"
 [ "$APPEND_SPACES" = true ]        && ARGS+=" --prepend-space-to-text"
 [ "$APPEND_SPACES" = true ]        && ARGS+=" --append-space-to-text"
+if [ "$NORMALISE" = true ]; then
+  ARGS+=" --pitch-mean 214.72203"
+  ARGS+=" --pitch-std 65.72038"
+fi
 
 if [ "$SAMPLING_RATE" == "44100" ]; then
   ARGS+=" --sampling-rate 44100"
@@ -96,8 +101,6 @@ if [ "$SAMPLING_RATE" == "44100" ]; then
   ARGS+=" --win-length 2048"
   ARGS+=" --mel-fmin 0.0"
   ARGS+=" --mel-fmax 22050.0"
-  ARGS+=" -"
-  ARGS+=""
 
 elif [ "$SAMPLING_RATE" != "22050" ]; then
   echo "Unknown sampling rate $SAMPLING_RATE"
