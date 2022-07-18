@@ -3,22 +3,22 @@
 export OMP_NUM_THREADS=1
 
 : ${NUM_GPUS:=8}
-: ${BATCH_SIZE:=8}
+: ${BATCH_SIZE:=16}
 : ${GRAD_ACCUMULATION:=2}
 : ${OUTPUT_DIR:="./output"}
 : ${DATASET_PATH:=LJSpeech-1.1}
-: ${TRAIN_FILELIST:=filelists/test_cwt.txt}
-: ${VAL_FILELIST:=filelists/ljs_audio_pitch_prom_text_val.txt}
+: ${TRAIN_FILELIST:=filelists/ljs_audio_pitch_prom_text_train_v4.txt}
+: ${VAL_FILELIST:=filelists/ljs_audio_pitch_prom_text_val_v2.txt}
 : ${AMP:=false}
 : ${SEED:=""}
 
 : ${LEARNING_RATE:=0.1}
 
 # Adjust these when the amount of data changes
-: ${EPOCHS:=3} #1000
-: ${EPOCHS_PER_CHECKPOINT:=1} #100
-: ${WARMUP_STEPS:=3} #1000
-: ${KL_LOSS_WARMUP:=1} #100
+: ${EPOCHS:=250} #1000
+: ${EPOCHS_PER_CHECKPOINT:=25} #100
+: ${WARMUP_STEPS:=1000} #1000
+: ${KL_LOSS_WARMUP:=100} #100
 
 # Train a mixed phoneme/grapheme model
 : ${PHONE:=true}
