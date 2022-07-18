@@ -375,7 +375,7 @@ class TTSDataset(torch.utils.data.Dataset):
             prompath = self.dataset_path + '/' + prompath
             prom = torch.load(prompath)
             cwt_list = prom.tolist()
-            # print(cwt_list)
+            print(cwt_list)
             # print(f'text info: {text_info}')
 
             text_symbols = [x[1] for x in text_info]
