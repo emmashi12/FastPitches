@@ -371,10 +371,6 @@ def plot_batch_mels(pred_tgt_lists, rank):
                    for feature in pred_tgt]
     assert len(set(batch_sizes)) == 1
 
-    for pred_tgt in regulated_features:
-        for feature in pred_tgt:
-            batch_sizes = feature.size(dim=0)
-
     for i in range(batch_sizes[0]):
         fig = plot_mels([
             [array[i] for array in regulated_features[0]],
@@ -460,8 +456,8 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             print(f'mel_tgt shape in x: {x[2].shape}')
 
             loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum')
-            if i % 5 == 0:
-                log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
+            # if i % 5 == 0:
+            #     log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
 
             if distributed_run:
                 for k, v in meta.items():
