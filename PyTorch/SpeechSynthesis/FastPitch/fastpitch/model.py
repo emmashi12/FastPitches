@@ -309,6 +309,7 @@ class FastPitch(nn.Module):
         # print(f'inputs shape: {inputs.shape}')
         # print(f'cwt_tgt shape: {cwt_tgt.shape}')
         print(f'mel_tgt shape: {mel_tgt.shape}')
+        print(f'pitch_dense: {pitch_dense}')
 
         # inputs: [16, 140] [batch_size, text_len]
         # mel_tgt: [batch_size, mel-channel, mel_len]

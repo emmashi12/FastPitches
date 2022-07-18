@@ -9,9 +9,9 @@ def get_cwt_tensor(file, outpath):
     tst = pd.read_csv(file, delimiter='\t')
     #print(tst)
     prom = tst['p_strength'].to_list()
-    #print(prom)
+    print("prom list", prom)
     p_tensor = torch.Tensor(prom)
-    print(p_tensor)
+    print("prom tensor", p_tensor)
     torch.save(p_tensor, fpath)
 
 

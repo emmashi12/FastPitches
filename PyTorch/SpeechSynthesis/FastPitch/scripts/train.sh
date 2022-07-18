@@ -96,6 +96,8 @@ if [ "$SAMPLING_RATE" == "44100" ]; then
   ARGS+=" --win-length 2048"
   ARGS+=" --mel-fmin 0.0"
   ARGS+=" --mel-fmax 22050.0"
+  ARGS+=" -"
+  ARGS+=""
 
 elif [ "$SAMPLING_RATE" != "22050" ]; then
   echo "Unknown sampling rate $SAMPLING_RATE"
