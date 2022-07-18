@@ -121,7 +121,7 @@ class FastPitchLoss(nn.Module):
             'duration_predictor_loss': dur_pred_loss.clone().detach(),
             'attn_loss': attn_loss.clone().detach(),
             'dur_error': (torch.abs(dur_pred - dur_tgt).sum()
-                          / dur_mask.sum()).detach(),
+                          / dur_mask.sum()).detach()
         }  # removed: 'pitch_loss': pitch_loss.clone().detach(),
 
         if pitch_pred is not None:

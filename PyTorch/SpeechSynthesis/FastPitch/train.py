@@ -389,9 +389,6 @@ def log_validation_batch(x, y_pred, rank):
                      'pitch_pred', 'pitch_tgt', 'energy_pred',
                      'energy_tgt', 'attn_soft', 'attn_hard',
                      'attn_hard_dur', 'attn_logprob', 'cwt_pred', 'cwt_tgt']
-    # (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred,
-    #  pitch_tgt, energy_pred, energy_tgt, attn_soft, attn_hard,
-    #  attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt)
 
     validation_dict = dict(zip(x_fields + y_pred_fields,
                                list(x) + list(y_pred)))
@@ -410,22 +407,25 @@ def log_validation_batch(x, y_pred, rank):
     print('mel_padded shape in validation dict:', validation_dict['mel_padded'].shape)
 
     # ----------modified----------
-    if y_pred[6] is None:  # no energy
-        pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
-        tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
-        if y_pred[4] is None:  # no pitch/energy
-            print('No pitch predictor')
-            pred_specs_keys = ['mel_out', 'attn_hard_dur']
-            tgt_specs_keys = ['mel_padded', 'attn_hard_dur']
-    elif y_pred[-2] is None:
-        pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur']
-        tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur']
-    else:
+    if y_pred[6] and y_pred[4] and y_pred[-2] is not None:
         pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur', 'cwt_pred']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur', 'cwt_tgt']
+    elif y_pred[-2] is None:  # no cwt
+        pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur']
+        tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur']
+        if y_pred[6] is None:  # no energy
+            pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
+            tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
+            if y_pred[4] is None:  # no pitch and energy
+                print('No pitch predictor')
+                pred_specs_keys = ['mel_out', 'attn_hard_dur']
+                tgt_specs_keys = ['mel_padded', 'attn_hard_dur']
+    elif y_pred[4] is None:
+        pred_specs_keys = ['mel_out', 'attn_hard_dur', 'cwt_pred']
+        tgt_specs_keys = ['mel_padded', 'attn_hard_dur', 'cwt_tgt']
 
-    # plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
-    #                  [validation_dict[key] for key in tgt_specs_keys]], rank)
+    plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
+                     [validation_dict[key] for key in tgt_specs_keys]], rank)
 
 
 def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
@@ -444,15 +444,11 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
         val_meta = defaultdict(float)
         val_num_frames = 0
         for i, batch in enumerate(val_loader):
-            # x = (inputs, input_lens, mel_tgt, mel_lens, pitch_dense,
-            # energy_dense, spectral_tilt_dense, speaker, attn_prior, audiopaths)
-            # x = [text_padded, input_lengths, cwt_padded, mel_padded, output_lengths, pitch_padded, energy_padded, speaker, attn_prior, audiopaths]
             x, y, num_frames = batch_to_gpu(batch)
-            # (mel_out, dec_mask, dur_pred, log_dur_pred,
-            #  pitch_pred, pitch_tgt, energy_pred, energy_tgt,
-            #  spectral_tilt_pred, spectral_tilt_tgt,
-            #  attn_soft, attn_hard, attn_hard_dur, attn_logprob)
             y_pred = model(x)
+            # y_pred = (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred, pitch_tgt,
+            #  energy_pred, energy_tgt, attn_soft, attn_hard, attn_dur,
+            #  attn_logprob, cwt_pred, cwt_tgt)
             print(f'mel_out shape in y_pred: {y_pred[0].shape}')
             print(f'mel_tgt shape in x: {x[2].shape}')
 
@@ -474,16 +470,30 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
     val_meta['took'] = time.perf_counter() - tik
 
     # log overall statistics of the validate step
-    log({
+    loss_log = {
         'loss/validation-loss': val_meta['loss'].item(),
         'mel-loss/validation-mel-loss': val_meta['mel_loss'].item(),
-        # 'pitch-loss/validation-pitch-loss': val_meta['pitch_loss'].item(),
-        # 'energy-loss/validation-energy-loss': val_meta['energy_loss'].item(),
         'dur-loss/validation-dur-error': val_meta['duration_predictor_loss'].item(),
-        # 'cwt-loss/validation-cwt-loss': val_meta['cwt_loss'].item(),
         'validation-frames per s': num_frames.item() / val_meta['took'],
-        'validation-took': val_meta['took'],
-    }, rank)  # ------modified------ add cwt_loss
+        'validation-took': val_meta['took']
+    }
+    if y_pred[4] is not None:
+        loss_log['pitch-loss/validation-pitch-loss'] = val_meta['pitch_loss'].item()
+    if y_pred[6] is not None:
+        loss_log['energy-loss/validation-energy-loss'] = val_meta['energy_loss'].item()
+    if y_pred[-2] is not None:
+        loss_log['cwt-loss/validation-cwt-loss'] = val_meta['cwt_loss'].item()
+
+    log(loss_log, rank)
+    # log({
+    #     'loss/validation-loss': val_meta['loss'].item(),
+    #     'mel-loss/validation-mel-loss': val_meta['mel_loss'].item(),
+    #     'pitch-loss/validation-pitch-loss': val_meta['pitch_loss'].item(),
+    #     'energy-loss/validation-energy-loss': val_meta['energy_loss'].item(),
+    #     'dur-loss/validation-dur-error': val_meta['duration_predictor_loss'].item(),
+    #     'validation-frames per s': num_frames.item() / val_meta['took'],
+    #     'validation-took': val_meta['took'],
+    # }, rank)  # add cwt_loss
 
     if was_training:
         model.train()
