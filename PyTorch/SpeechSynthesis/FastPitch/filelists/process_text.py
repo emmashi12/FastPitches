@@ -40,7 +40,7 @@ def add_column(infile="ljs_audio_pitch_text_val.txt", outfile=None):
                     f.write('{}\n'.format(rewrite))
 
 
-def remove_wav(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_train_v3.txt", infile2='/Users/emmashi/Desktop/incorrect_label.txt', outfile=None):
+def remove_wav(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_val.txt", infile2='/Users/emmashi/Desktop/incorrect_label_val.txt', outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     column_names = ['id', 'text']
     data = pd.read_csv(infile2, names=column_names, header=None, quoting=csv.QUOTE_NONE, delimiter='\t')
@@ -53,16 +53,16 @@ def remove_wav(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_train_v3
         for l in file:
             matchline = re.match('(.*)\|(.*)\|(.*)\|(.*)', l)
             wavpath = matchline.group(1)
-            #print(wavpath)
+            print(wavpath)
             #print(type(wavpath))
             if wavpath not in ids and outfile:
-                with open("ljs_audio_pitch_prom_text_train_v4.txt", 'a') as f:
+                with open("ljs_audio_pitch_prom_text_val_v2.txt", 'a') as f:
                     f.write('{}'.format(l))
 
 
 #extract_text(outfile=True)
-add_column(outfile=True)
-#remove_wav(outfile=True)
+# add_column(outfile=True)
+remove_wav(outfile=True)
 
 # print([5] * 4)
 # x = [5]
