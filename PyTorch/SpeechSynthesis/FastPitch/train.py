@@ -342,6 +342,7 @@ def plot_batch_mels(pred_tgt_lists, rank):
     regulated_features = []
     # prediction: mel, pitch, energy
     # target: mel, pitch, energy
+    # pred_tgt_lists = [[validation_dict[key] for key in pred_specs_keys], [validation_dict[key] for key in tgt_specs_keys]]
     print(f'pred_tgt_lists: {len(pred_tgt_lists)}')
     print(f'pred_tgt: {len(pred_tgt_lists[0])}')
     print(f'pred_tgt tensor shape: {[i.shape for i in pred_tgt_lists[0][0]]}')
@@ -400,6 +401,7 @@ def log_validation_batch(x, y_pred, rank):
         validation_dict.pop('cwt_pred', None)  # pop cwt ------modified-------
     log(validation_dict, rank)  # something in here returns a warning
 
+    # ----------modified----------
     if y_pred[6] is None:
         pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
