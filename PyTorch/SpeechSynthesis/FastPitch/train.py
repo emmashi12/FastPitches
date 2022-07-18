@@ -443,6 +443,7 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             #  spectral_tilt_pred, spectral_tilt_tgt,
             #  attn_soft, attn_hard, attn_hard_dur, attn_logprob)
             y_pred = model(x)
+            print(f'mel_out shape in y_pred: {y_pred[0].shape}')
 
             loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum')
             if i % 5 == 0:
