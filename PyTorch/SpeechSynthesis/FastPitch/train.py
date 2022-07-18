@@ -846,11 +846,11 @@ def main():
             'epoch_took': epoch_time,
         }
         if pitch_pred is not None:
-            iter_loss['pitch-loss/epoch_pitch_loss'] = epoch_pitch_loss
+            log_epoch_loss['pitch-loss/epoch_pitch_loss'] = epoch_pitch_loss
         if energy_pred is not None:
-            iter_loss['energy-loss/epoch_energy_loss'] = epoch_energy_loss
+            log_epoch_loss['energy-loss/epoch_energy_loss'] = epoch_energy_loss
         if cwt_pred is not None:
-            iter_loss['cwt-loss/epoch_cwt_loss'] = epoch_cwt_loss
+            log_epoch_loss['cwt-loss/epoch_cwt_loss'] = epoch_cwt_loss
         log(log_epoch_loss, args.local_rank)
         bmark_stats.update(epoch_num_frames, epoch_loss, epoch_mel_loss,
                            epoch_time)
