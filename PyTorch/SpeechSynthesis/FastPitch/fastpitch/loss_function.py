@@ -84,7 +84,7 @@ class FastPitchLoss(nn.Module):
         ldiff = mel_tgt.size(1) - mel_out.size(1)
         mel_out = F.pad(mel_out, (0, 0, 0, ldiff, 0, 0), value=0.0)
         mel_mask = mel_tgt.ne(0).float()  # A boolean tensor that is True where input is not equal to other and False elsewhere
-        print(f'mel_mask: {mel_mask}')
+        # print(f'mel_mask: {mel_mask}')
         loss_fn = F.mse_loss
         mel_loss = loss_fn(mel_out, mel_tgt, reduction='none')
         mel_loss = (mel_loss * mel_mask).sum() / mel_mask.sum()

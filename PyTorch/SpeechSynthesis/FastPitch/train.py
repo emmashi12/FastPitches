@@ -343,11 +343,12 @@ def plot_batch_mels(pred_tgt_lists, rank):
     # prediction: mel, pitch, energy
     # target: mel, pitch, energy
     # pred_tgt_lists = [[validation_dict[key] for key in pred_specs_keys], [validation_dict[key] for key in tgt_specs_keys]]
-    print(f'pred_tgt_lists: {len(pred_tgt_lists)}')
-    print(f'pred_tgt: {len(pred_tgt_lists[0])}')
-    print(f'pred_tgt tensor shape: {[i.shape for i in pred_tgt_lists[0][0]]}')
+    print(f'pred_list: {pred_tgt_lists[0]}')
+    print(f'tgt_list: {pred_tgt_lists[1]}')
+
     for mel_pitch_energy in pred_tgt_lists:
         mels = mel_pitch_energy[0]
+        print(f'mels shape: {mels.shape}')
         if mels.size(dim=2) == 80:  # tgt and pred mel have diff dimension order
             mels = mels.permute(0, 2, 1)
         mel_lens = mel_pitch_energy[-1]
@@ -400,7 +401,7 @@ def log_validation_batch(x, y_pred, rank):
         print('no cwt')
         validation_dict.pop('cwt_pred', None)  # pop cwt ------modified-------
     log(validation_dict, rank)  # something in here returns a warning
-
+    print(f'validation_dict: {validation_dict}')
     # ----------modified----------
     if y_pred[6] is None:
         pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
