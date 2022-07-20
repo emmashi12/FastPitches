@@ -289,7 +289,7 @@ def plot_mels(pred_tgt_lists):
     #             [array[i] for array in regulated_features[1]]
     #         ]
 
-    if len(pred_tgt_lists[0]) == 4 or len(pred_tgt_lists[0]) == 5:  # -----modified------
+    if len(pred_tgt_lists[0]) == 2 or len(pred_tgt_lists[0]) == 3:  # -----modified------
         # this is just for the axes limits
         pitch_max = max([feature_list[1].max() for feature_list in local_prep_tgts])
         energy_max = max([feature_list[2].max() for feature_list in local_prep_tgts])
@@ -358,7 +358,7 @@ def plot_batch_mels(pred_tgt_lists, rank):
         if mels.size(dim=2) == 80:  # tgt and pred mel have diff dimension order
             mels = mels.permute(0, 2, 1)
         mel_lens = mel_pitch_energy[-1]
-        if len(mel_pitch_energy) == 4 or len(mel_pitch_energy) == 5:  # predicting pitch and energy
+        if len(mel_pitch_energy) == 4:  # predicting pitch and energy
             # reverse regulation for plotting: for every mel frame get pitch+energy
             new_pitch = regulate_len(mel_lens,
                                      mel_pitch_energy[1].permute(0, 2, 1))[0]
@@ -368,7 +368,9 @@ def plot_batch_mels(pred_tgt_lists, rank):
                                       mel_pitch_energy[2].unsqueeze(dim=-1))[0]
             regulated_features.append([mels,
                                        new_pitch.squeeze(axis=2),
-                                       new_energy.squeeze(axis=2)])
+                                       new_energy.squeeze(axis=2)])  # --------modified-------- no energy
+            # regulated_features.append([mels,
+            #                            new_pitch.squeeze(axis=2)])   # --------modified-------- no energy
         elif len(mel_pitch_energy) == 2:
             regulated_features.append([mels])
 
@@ -413,22 +415,16 @@ def log_validation_batch(x, y_pred, rank):
     print('mel_padded shape in validation dict:', validation_dict['mel_padded'].shape)
 
     # ----------modified----------
-    if y_pred[6] and y_pred[4] and y_pred[-2] is not None:
-        pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur', 'cwt_pred']
-        tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur', 'cwt_tgt']
-    elif y_pred[-2] is None:  # no cwt
+    if y_pred[6] and y_pred[4] is not None:
         pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur']
-        if y_pred[6] is None:  # no energy
-            pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
-            tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
-            if y_pred[4] is None:  # no pitch and energy
-                print('No pitch predictor')
-                pred_specs_keys = ['mel_out', 'attn_hard_dur']
-                tgt_specs_keys = ['mel_padded', 'attn_hard_dur']
-    elif y_pred[4] is None:
-        pred_specs_keys = ['mel_out', 'attn_hard_dur', 'cwt_pred']
-        tgt_specs_keys = ['mel_padded', 'attn_hard_dur', 'cwt_tgt']
+    elif y_pred[6] is None:  # no energy
+        pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
+        tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
+        if y_pred[4] is None:  # no pitch and energy
+            print('No pitch predictor')
+            pred_specs_keys = ['mel_out', 'attn_hard_dur']
+            tgt_specs_keys = ['mel_padded', 'attn_hard_dur']
 
     # plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
     #                  [validation_dict[key] for key in tgt_specs_keys]], rank)
@@ -458,7 +454,7 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             print(f'mel_out shape in y_pred: {y_pred[0].shape}')
             print(f'mel_tgt shape in x: {x[2].shape}')
 
-            loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum')
+            loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum', is_continuous=True)
             if i % 5 == 0:
                 log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
 
@@ -721,7 +717,7 @@ def main():
             with torch.cuda.amp.autocast(enabled=args.amp):
                 print("start training")
                 y_pred = model(x) #forward pass starts (calling the model)
-                loss, meta = criterion(y_pred, y)  #
+                loss, meta = criterion(y_pred, y, is_continuous=True)  # -----modified-----
 
                 if (args.kl_loss_start_epoch is not None
                         and epoch >= args.kl_loss_start_epoch):

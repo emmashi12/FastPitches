@@ -46,7 +46,7 @@ class FastPitchLoss(nn.Module):
         self.attn_loss_scale = attn_loss_scale
         self.attn_ctc_loss = AttentionCTCLoss()
 
-    def forward(self, model_out, targets, is_training=True, meta_agg='mean'):
+    def forward(self, model_out, targets, is_training=True, meta_agg='mean', is_continuous=True):
         (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred, pitch_tgt,
          energy_pred, energy_tgt, attn_soft, attn_hard, attn_dur,
          attn_logprob, cwt_pred, cwt_tgt) = model_out  # from forward() in model.py
@@ -72,12 +72,16 @@ class FastPitchLoss(nn.Module):
         if cwt_pred is not None:
             print(f'cwt_pred shape: {cwt_pred.shape}')
             print(f'cwt_tgt shape: {cwt_tgt.shape}')
-            cwt_tgt = cwt_tgt.unsqueeze(1)  # ------modified----- don't know why the dimension changed
-            ldiff = cwt_tgt.size(2) - cwt_pred.size(2)  # [batch_size, 1, text_len]
-            cwt_pred = F.pad(cwt_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
-            cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
-            # cwt_loss = F.binary_cross_entropy(cwt_tgt, cwt_pred) binary cross-entropy
-            cwt_loss = (cwt_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
+            if is_continuous:
+                print("--------Continuous Loss--------")
+                cwt_tgt = cwt_tgt.unsqueeze(1)  # ------modified----- don't know why the dimension changed
+                ldiff = cwt_tgt.size(2) - cwt_pred.size(2)  # [batch_size, 1, text_len]
+                cwt_pred = F.pad(cwt_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
+                cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
+                cwt_loss = (cwt_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
+            # else:
+            #     print("--------Categorical Loss--------")
+            #     cwt_loss = F.binary_cross_entropy(cwt_tgt, cwt_pred)  # binary cross-entropy
         else:
             cwt_loss = 0
 
