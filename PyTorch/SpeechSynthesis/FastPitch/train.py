@@ -762,7 +762,9 @@ def main():
                 raise Exception("loss is NaN")
 
             accumulated_steps += 1
+            print("reduced_loss: ", reduced_loss)
             iter_loss += reduced_loss
+            print("iter_loss:", iter_loss)
             iter_num_frames += reduced_num_frames
             iter_meta = {k: iter_meta.get(k, 0) + meta.get(k, 0) for k in meta}
 

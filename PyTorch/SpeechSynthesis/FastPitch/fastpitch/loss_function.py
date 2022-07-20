@@ -70,8 +70,8 @@ class FastPitchLoss(nn.Module):
 
         # loss function for continuous cwt label
         if cwt_pred is not None:
-            print(f'cwt_pred shape: {cwt_pred.shape}')
-            print(f'cwt_tgt shape: {cwt_tgt.shape}')
+            # print(f'cwt_pred shape: {cwt_pred.shape}')  # [8, 1, 128]
+            # print(f'cwt_tgt shape: {cwt_tgt.shape}')  # [8, 128]
             if is_continuous:
                 print("--------Continuous Loss--------")
                 cwt_tgt = cwt_tgt.unsqueeze(1)  # ------modified----- don't know why the dimension changed
