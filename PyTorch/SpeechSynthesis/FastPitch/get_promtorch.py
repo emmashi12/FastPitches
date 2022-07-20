@@ -7,11 +7,11 @@ def get_cwt_tensor(file, outpath):
     fname = Path(file).with_suffix('.pt').name
     fpath = Path(outpath, fname)
     tst = pd.read_csv(file, delimiter='\t')
-    #print(tst)
-    prom = tst['p_strength'].to_list()
-    print("prom list", prom)
-    p_tensor = torch.Tensor(prom)
-    print("prom tensor", p_tensor)
+    # print(tst.dtypes)
+    # prom = tst['p_label'].to_list()
+    # print("prom label list", prom)
+    p_tensor = torch.LongTensor(tst['p_label'].values)
+    print("prom label tensor", p_tensor)
     torch.save(p_tensor, fpath)
 
 
