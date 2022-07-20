@@ -582,6 +582,11 @@ def main():
 
     model_config = models.get_model_config('FastPitch', args)
     model = models.get_model('FastPitch', model_config, device)
+
+    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    params = sum([np.prod(p.size()) for p in model_parameters])
+    print("model parameters:", params)
+    
     attention_kl_loss = AttentionBinarizationLoss()
 
     if args.local_rank == 0:

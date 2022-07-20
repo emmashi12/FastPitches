@@ -377,7 +377,7 @@ class FastPitch(nn.Module):
             # print(cwt_pred)
             if use_gt_cwt and cwt_tgt is not None:
                 cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
-                # print(f'cwt_tgt shape: {cwt_tgt.shape}')
+                print(f'cwt_tgt shape: {cwt_tgt.shape}')
                 cwt_emb = self.cwt_emb(cwt_tgt)
             else:
                 cwt_emb = self.cwt_emb(cwt_pred)
