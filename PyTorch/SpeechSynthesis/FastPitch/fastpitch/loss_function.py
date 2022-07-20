@@ -73,7 +73,7 @@ class FastPitchLoss(nn.Module):
             # print(f'cwt_pred shape: {cwt_pred.shape}')  # [8, 1, 128]
             # print(f'cwt_tgt shape: {cwt_tgt.shape}')  # [8, 128]
             if is_continuous:
-                print("--------Continuous Loss--------")
+                # print("--------Continuous Loss--------")
                 cwt_tgt = cwt_tgt.unsqueeze(1)  # ------modified----- don't know why the dimension changed
                 ldiff = cwt_tgt.size(2) - cwt_pred.size(2)  # [batch_size, 1, text_len]
                 cwt_pred = F.pad(cwt_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
