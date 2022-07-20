@@ -419,7 +419,7 @@ def log_validation_batch(x, y_pred, rank):
         pred_specs_keys = ['mel_out', 'pitch_pred', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'attn_hard_dur']
         if y_pred[4] is None:  # no pitch and energy
-            # print('No pitch predictor')
+            print('No pitch predictor')
             pred_specs_keys = ['mel_out', 'attn_hard_dur']
             tgt_specs_keys = ['mel_padded', 'attn_hard_dur']
     else:
@@ -451,8 +451,8 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             # y_pred = (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred, pitch_tgt,
             #  energy_pred, energy_tgt, attn_soft, attn_hard, attn_dur,
             #  attn_logprob, cwt_pred, cwt_tgt)
-            # print(f'mel_out shape in y_pred: {y_pred[0].shape}')
-            # print(f'mel_tgt shape in x: {x[2].shape}')
+            print(f'mel_out shape in y_pred: {y_pred[0].shape}')
+            print(f'mel_tgt shape in x: {x[2].shape}')
 
             loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum', is_continuous=True)
             if i % 5 == 0:

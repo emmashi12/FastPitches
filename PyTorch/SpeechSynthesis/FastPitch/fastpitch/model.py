@@ -238,7 +238,7 @@ class FastPitch(nn.Module):
                     n_layers=cwt_predictor_n_layers,
                     n_predictions=1)
 
-                print("cwt embedding")
+                # print("cwt embedding")
                 self.cwt_emb = nn.Conv1d(
                     1, symbols_embedding_dim,
                     kernel_size=cwt_embedding_kernel_size,
