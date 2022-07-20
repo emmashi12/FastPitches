@@ -104,7 +104,7 @@ class TemporalPredictor(nn.Module):
     def forward(self, enc_out, enc_out_mask):
         out = enc_out * enc_out_mask  # element-wise multiplication
         out = self.layers(out.transpose(1, 2)).transpose(1, 2)
-        print(f'layers out shape: {out.shape}')
+        # print(f'layers out shape: {out.shape}')  # torch.Size([8, 116, 256])
         out = self.fc(out) * enc_out_mask
         return out
 
