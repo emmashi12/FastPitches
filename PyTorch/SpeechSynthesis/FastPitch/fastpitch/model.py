@@ -113,7 +113,7 @@ class BinaryClassification(nn.Module):
     """Predicts a categorical label per each temporal location"""
     # for categorical cwt labels
     def __init__(self, input_size, filter_size, kernel_size, dropout,
-                 n_layers=2, n_predictions=1):
+                 n_layers=2, n_predictions=2):
         super(BinaryClassification, self).__init__()
         self.layers = nn.Sequential(*[
             ConvReLUNorm(input_size if i == 0 else filter_size, filter_size,
@@ -122,13 +122,15 @@ class BinaryClassification(nn.Module):
         )  # in_channels, out_channels, kernel_size=1, dropout=0.0
         self.n_predictions = n_predictions
         self.fc = nn.Linear(filter_size, self.n_predictions, bias=True)
-        self.softmax = nn.Softmax(dim=1)
+        # self.softmax = nn.Softmax(dim=1)
 
     def forward(self, enc_out, enc_out_mask):
         out = enc_out * enc_out_mask
         out = self.layers(out.transpose(1, 2)).transpose(1, 2)
-        out = self.Softmax(self.fc(out))
+        out = self.fc(out)
+        print(f"out shape after fc layer: {out.shape}")
         out = out * enc_out_mask
+        print(f"out shape after multiply enc_out_mask: {out.shape}")
         return out
 
 
