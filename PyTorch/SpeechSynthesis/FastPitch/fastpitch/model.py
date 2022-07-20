@@ -371,13 +371,12 @@ class FastPitch(nn.Module):
 
         # Predict prominence -------------modified--------------
         if self.cwt_conditioning:
-            print("cwt")
             cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
             # print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, 1, text_len], predicting continuous number now
             # print(cwt_pred)
             if use_gt_cwt and cwt_tgt is not None:
                 cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
-                print(f'cwt_tgt shape: {cwt_tgt.shape}')
+                # print(f'cwt_tgt shape: {cwt_tgt.shape}')
                 cwt_emb = self.cwt_emb(cwt_tgt)
             else:
                 cwt_emb = self.cwt_emb(cwt_pred)
@@ -411,11 +410,11 @@ class FastPitch(nn.Module):
         # Predict energy
         if self.energy_conditioning:
             energy_pred = self.energy_predictor(enc_out, enc_mask).squeeze(-1)
-            print(f'energy_pred shape: {energy_pred.shape}')  # [batch_size, mel_len]
+            # print(f'energy_pred shape: {energy_pred.shape}')  # [batch_size, mel_len]
             # Average energy over characters
             energy_tgt = average_pitch(energy_dense.unsqueeze(1), dur_tgt)
             energy_tgt = torch.log(1.0 + energy_tgt)
-            print(f'energy_tgt shape {energy_tgt.shape}')
+            # print(f'energy_tgt shape {energy_tgt.shape}')
             energy_emb = self.energy_emb(energy_tgt)
             energy_tgt = energy_tgt.squeeze(1)
             enc_out = enc_out + energy_emb.transpose(1, 2)
