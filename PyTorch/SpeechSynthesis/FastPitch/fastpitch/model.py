@@ -387,6 +387,7 @@ class FastPitch(nn.Module):
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
             else:
                 cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                print(f'cwt_pred shape: {cwt_pred.shape}')
                 # cwt_pred.shape: [batch_size, 2, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
                     # cwt_tgt: [batch_size, text_len]
