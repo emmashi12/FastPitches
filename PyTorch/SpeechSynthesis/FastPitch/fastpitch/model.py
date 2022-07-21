@@ -128,9 +128,9 @@ class BinaryClassification(nn.Module):
         out = enc_out * enc_out_mask
         out = self.layers(out.transpose(1, 2)).transpose(1, 2)
         out = self.fc(out)
-        print(f"out shape after fc layer: {out.shape}")  # [16, 134, 3]
+        print(f"out shape after fc layer: {out.shape}")  # [16, 134, 1]
         out = out * enc_out_mask
-        print(f"out shape after multiply enc_out_mask: {out.shape}")  # [16, 136, 3]
+        print(f"out shape after multiply enc_out_mask: {out.shape}")  # [16, 136, 1]
         return out
 
 
@@ -390,13 +390,14 @@ class FastPitch(nn.Module):
                 print(f'cwt_pred shape: {cwt_pred.shape}')
                 print(cwt_pred)
                 print(f'cwt_pred type: {cwt_pred.type()}')
-                # cwt_pred.shape: [batch_size, 3, text_len], when predicting categorical labels
+                # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
                     # cwt_tgt: [batch_size, text_len]
                     print(f'cwt_tgt type: {cwt_tgt.type()}')
                     cwt_emb = self.cwt_emb(cwt_tgt)
                     print(f'cwt_emb shape: {cwt_emb.shape}')  # [16, 124, 384]
                 else:
+                    cwt_pred = cwt_pred.squeeze(1)
                     cwt_emb = self.cwt_emb(cwt_pred)
                 enc_out = enc_out + cwt_emb
                 print(enc_out.shape)
