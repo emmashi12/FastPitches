@@ -401,7 +401,7 @@ class TTSDataset(torch.utils.data.Dataset):
             # print(len(upsampled))
             cwt_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
             # cwt_tensor = torch.Tensor(upsampled)  # for continuous label
-            print(cwt_tensor.type())
+            # print(cwt_tensor.type())
             assert list(cwt_tensor.size())[0] == total_symbols
 
             return cwt_tensor

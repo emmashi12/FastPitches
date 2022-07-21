@@ -128,9 +128,9 @@ class BinaryClassification(nn.Module):
         out = enc_out * enc_out_mask
         out = self.layers(out.transpose(1, 2)).transpose(1, 2)
         out = self.fc(out)
-        print(f"out shape after fc layer: {out.shape}")  # [16, 134, 1]
+        print(f"out shape after fc layer: {out.shape}")  # [16, 134, 2]
         out = out * enc_out_mask
-        print(f"out shape after multiply enc_out_mask: {out.shape}")  # [16, 1, 134]
+        print(f"out shape after multiply enc_out_mask: {out.shape}")  # [16, 136, 2]
         return out
 
 
@@ -227,7 +227,7 @@ class FastPitch(nn.Module):
 
         # -------------modified--------------
         self.cwt_conditioning = cwt_conditioning
-        self.cwt_continuous = cwt_continuous
+        self.cwt_continuous = cwt_continuous  # conditioning for continuous cwt label
         if cwt_conditioning:
             print("Prominence Predictor")
             if cwt_continuous:
@@ -256,7 +256,8 @@ class FastPitch(nn.Module):
                     n_layers=cwt_predictor_n_layers,
                     n_predictions=2)
 
-                self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)  # for categorical label
+                self.cwt_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
+                # for categorical label, symbols_embedding_dim = 384
 
         self.energy_conditioning = energy_conditioning
         if energy_conditioning:
@@ -373,16 +374,29 @@ class FastPitch(nn.Module):
 
         # Predict prominence -------------modified--------------
         if self.cwt_conditioning:
-            cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-            # print(f'cwt_pred shape: {cwt_pred.shape}')  # [batch_size, 1, text_len], predicting continuous number now
-            # print(cwt_pred)
-            if use_gt_cwt and cwt_tgt is not None:
-                cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
-                print(f'cwt_tgt type: {cwt_tgt.type()}')
-                cwt_emb = self.cwt_emb(cwt_tgt)
+            if self.cwt_continuous:
+                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                # cwt_pred.shape: [batch_size, 1, text_len], when predicting continuous number
+                if use_gt_cwt and cwt_tgt is not None:
+                    cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
+                    print(f'cwt_tgt type: {cwt_tgt.type()}')
+                    cwt_emb = self.cwt_emb(cwt_tgt)
+                    print(f'cwt_emb shape: {cwt_emb.shape}')
+                else:
+                    cwt_emb = self.cwt_emb(cwt_pred)
+                enc_out = enc_out + cwt_emb.transpose(1, 2)
             else:
-                cwt_emb = self.cwt_emb(cwt_pred)
-            enc_out = enc_out + cwt_emb.transpose(1, 2)
+                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                # cwt_pred.shape: [batch_size, 2, text_len], when predicting categorical labels
+                if use_gt_cwt and cwt_tgt is not None:
+                    # cwt_tgt: [batch_size, text_len]
+                    print(f'cwt_tgt type: {cwt_tgt.type()}')
+                    cwt_emb = self.cwt_emb(cwt_tgt)
+                    print(f'cwt_emb shape: {cwt_emb.shape}')
+                else:
+                    cwt_emb = self.cwt_emb(cwt_pred)
+                enc_out = enc_out + cwt_emb
+                print(enc_out.shape)
         else:
             cwt_pred = None
 
