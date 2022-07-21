@@ -393,7 +393,7 @@ class FastPitch(nn.Module):
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
                     # cwt_tgt: [batch_size, text_len]
-                    print(f'cwt_tgt shape: {cwt_tgt.shape}')
+                    print(f'cwt_tgt shape: {cwt_tgt.shape}')  # [16, 124]
                     cwt_emb = self.cwt_emb(cwt_tgt)
                     print(f'cwt_emb shape: {cwt_emb.shape}')  # [16, 124, 384]
                 else:
