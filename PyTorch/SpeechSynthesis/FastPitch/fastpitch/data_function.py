@@ -399,8 +399,9 @@ class TTSDataset(torch.utils.data.Dataset):
 
             # print(upsampled)
             # print(len(upsampled))
-            cwt_tensor = torch.LongTensor(upsampled)  # convert to LongTensor for categorical
-            # print(cwt_tensor)
+            cwt_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
+            # cwt_tensor = torch.Tensor(upsampled)  # for continuous label
+            print(cwt_tensor.type())
             assert list(cwt_tensor.size())[0] == total_symbols
 
             return cwt_tensor
@@ -429,7 +430,8 @@ class TTSCollate:
         # num_cwt = batch[0][8].size(0)
         # print(f'num_cwt: {num_cwt}')
         if batch[0][8] is not None:
-            cwt_padded = torch.FloatTensor(len(batch), max_input_len)
+            # cwt_padded = torch.FloatTensor(len(batch), max_input_len)  # for continuous label
+            cwt_padded = torch.LongTensor(len(batch), max_input_len)  # for categorical label
             cwt_padded.zero_()
             for i in range(len(ids_sorted_decreasing)):
                 cwt = batch[ids_sorted_decreasing[i]][8]
