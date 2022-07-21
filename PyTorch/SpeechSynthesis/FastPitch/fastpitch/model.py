@@ -393,7 +393,7 @@ class FastPitch(nn.Module):
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
                     # cwt_tgt: [batch_size, text_len]
-                    print(f'cwt_tgt type: {cwt_tgt.type()}')
+                    print(f'cwt_tgt shape: {cwt_tgt.shape}')
                     cwt_emb = self.cwt_emb(cwt_tgt)
                     print(f'cwt_emb shape: {cwt_emb.shape}')  # [16, 124, 384]
                 else:
@@ -470,13 +470,22 @@ class FastPitch(nn.Module):
 
         # Predict cwt
         if self.cwt_conditioning:
-            if cwt_tgt is None:
-                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                cwt_emb = self.cwt_emb(cwt_pred)
+            if self.cwt_continuous:
+                if cwt_tgt is None:
+                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                    cwt_emb = self.cwt_emb(cwt_pred)
+                else:
+                    cwt_tgt = cwt_tgt.unsqueeze(1)
+                    cwt_emb = self.cwt_emb(cwt_tgt)
+                enc_out = enc_out + cwt_emb.transpose(1, 2)
             else:
-                cwt_tgt = cwt_tgt.unsqueeze(1)
-                cwt_emb = self.cwt_emb(cwt_tgt)
-            enc_out = enc_out + cwt_emb.transpose(1, 2)
+                if cwt_tgt is None:
+                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(1)
+                    cwt_emb = self.cwt_emb(cwt_pred)
+                else:
+                    print(cwt_tgt)
+                    cwt_emb = self.cwt_emb(cwt_tgt)
+                enc_out = enc_out + cwt_emb.transpose(1, 2)
         else:
             cwt_pred = None
 

@@ -82,6 +82,7 @@ class FastPitchLoss(nn.Module):
             else:
                 print("--------Categorical Loss--------")
                 cwt_loss = F.cross_entropy(cwt_pred, cwt_tgt)  # cross-entropy
+                print(cwt_loss)
         else:
             cwt_loss = 0
 
