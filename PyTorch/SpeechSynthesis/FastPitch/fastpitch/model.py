@@ -379,9 +379,9 @@ class FastPitch(nn.Module):
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting continuous number
                 if use_gt_cwt and cwt_tgt is not None:
                     cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
-                    print(f'cwt_tgt type: {cwt_tgt.type()}')
+                    # print(f'cwt_tgt type: {cwt_tgt.type()}')
                     cwt_emb = self.cwt_emb(cwt_tgt)
-                    print(f'cwt_emb shape: {cwt_emb.shape}')
+                    # print(f'cwt_emb shape: {cwt_emb.shape}')
                 else:
                     cwt_emb = self.cwt_emb(cwt_pred)
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
@@ -395,7 +395,7 @@ class FastPitch(nn.Module):
                     # cwt_tgt: [batch_size, text_len]
                     print(f'cwt_tgt type: {cwt_tgt.type()}')
                     cwt_emb = self.cwt_emb(cwt_tgt)
-                    print(f'cwt_emb shape: {cwt_emb.shape}')
+                    print(f'cwt_emb shape: {cwt_emb.shape}')  # [16, 124, 384]
                 else:
                     cwt_emb = self.cwt_emb(cwt_pred)
                 enc_out = enc_out + cwt_emb
