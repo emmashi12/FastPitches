@@ -128,9 +128,9 @@ class BinaryClassification(nn.Module):
         out = enc_out * enc_out_mask
         out = self.layers(out.transpose(1, 2)).transpose(1, 2)
         out = self.fc(out)
-        print(f"out shape after fc layer: {out.shape}")
+        print(f"out shape after fc layer: {out.shape}")  # [16, 134, 1]
         out = out * enc_out_mask
-        print(f"out shape after multiply enc_out_mask: {out.shape}")
+        print(f"out shape after multiply enc_out_mask: {out.shape}")  # [16, 1, 134]
         return out
 
 
@@ -254,7 +254,7 @@ class FastPitch(nn.Module):
                     kernel_size=cwt_predictor_kernel_size,
                     dropout=p_cwt_predictor_dropout,
                     n_layers=cwt_predictor_n_layers,
-                    n_predictions=1)
+                    n_predictions=2)
 
                 self.cwt_emb = nn.Embedding(1, symbols_embedding_dim)  # for categorical label
 
