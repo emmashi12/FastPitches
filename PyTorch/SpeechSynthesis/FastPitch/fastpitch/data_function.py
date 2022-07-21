@@ -501,7 +501,8 @@ def batch_to_gpu(batch):
     pitch_padded = to_gpu(pitch_padded).float()
     energy_padded = to_gpu(energy_padded).float()
     attn_prior = to_gpu(attn_prior).float()
-    cwt_padded = to_gpu(cwt_padded).float()  # ----------modified-----------
+    # cwt_padded = to_gpu(cwt_padded).float()  # ----------modified-----------
+    cwt_padded = to_gpu(cwt_padded).long()  # ----------modified----------- for categorical
     if speaker is not None:
         speaker = to_gpu(speaker).long()
 
