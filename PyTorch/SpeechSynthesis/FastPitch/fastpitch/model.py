@@ -113,7 +113,7 @@ class BinaryClassification(nn.Module):
     """Predicts a categorical label per each temporal location"""
     # for categorical cwt labels
     def __init__(self, input_size, filter_size, kernel_size, dropout,
-                 n_layers=2, n_predictions=3):
+                 n_layers=2, n_predictions=1):
         super(BinaryClassification, self).__init__()
         self.layers = nn.Sequential(*[
             ConvReLUNorm(input_size if i == 0 else filter_size, filter_size,
@@ -254,7 +254,7 @@ class FastPitch(nn.Module):
                     kernel_size=cwt_predictor_kernel_size,
                     dropout=p_cwt_predictor_dropout,
                     n_layers=cwt_predictor_n_layers,
-                    n_predictions=3)
+                    n_predictions=1)
 
                 self.cwt_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
                 # for categorical label, symbols_embedding_dim = 384
