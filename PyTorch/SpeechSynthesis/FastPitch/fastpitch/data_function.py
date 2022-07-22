@@ -342,7 +342,7 @@ class TTSDataset(torch.utils.data.Dataset):
             pitchpath = self.dataset_path + '/' +pitchpath
             pitch = torch.load(pitchpath)
             if self.pitch_mean is not None:
-                print("doing pitch normalization")
+                # print("doing pitch normalization")
                 assert self.pitch_std is not None
                 pitch = normalize_pitch(pitch, self.pitch_mean, self.pitch_std)
             return pitch
