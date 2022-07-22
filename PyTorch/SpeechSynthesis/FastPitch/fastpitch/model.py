@@ -109,18 +109,18 @@ class TemporalPredictor(nn.Module):
         return out
 
 
-class BinaryClassification(nn.Module):
+class MulticlassClassification(nn.Module):
     """Predicts a categorical label per each temporal location"""
     # for categorical cwt labels
     def __init__(self, input_size, filter_size, kernel_size, dropout,
-                 n_layers=2, n_predictions=1):
+                 n_layers=2, n_predictions_cat=1):
         super(BinaryClassification, self).__init__()
         self.layers = nn.Sequential(*[
             ConvReLUNorm(input_size if i == 0 else filter_size, filter_size,
                          kernel_size=kernel_size, dropout=dropout)
             for i in range(n_layers)]
         )  # in_channels, out_channels, kernel_size=1, dropout=0.0
-        self.n_predictions = n_predictions
+        self.n_predictions_cat = n_predictions_cat
         self.fc = nn.Linear(filter_size, self.n_predictions, bias=True)
         # self.softmax = nn.Softmax(dim=1)
 
@@ -128,7 +128,7 @@ class BinaryClassification(nn.Module):
         out = enc_out * enc_out_mask
         out = self.layers(out.transpose(1, 2)).transpose(1, 2)
         out = self.fc(out)
-        print(f"out shape after fc layer: {out.shape}")  # [16, 134, 1]
+        print(f"out shape after fc layer: {out.shape}")  # [16, 134, 2]
         out = out * enc_out_mask
         print(f"out shape after multiply enc_out_mask: {out.shape}")  # [16, 136, 1]
         return out
@@ -248,13 +248,13 @@ class FastPitch(nn.Module):
                 # symbols_embedding_dim=384, filter_size=256, kernel_size=3
             else:
                 print("--------Categorical CWT Predicting--------")
-                self.cwt_predictor = BinaryClassification(
+                self.cwt_predictor = MulticlassClassification(
                     in_fft_output_size,
                     filter_size=cwt_predictor_filter_size,
                     kernel_size=cwt_predictor_kernel_size,
                     dropout=p_cwt_predictor_dropout,
                     n_layers=cwt_predictor_n_layers,
-                    n_predictions=1)
+                    n_predictions_cat=1)
 
                 self.cwt_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
                 # for categorical label, symbols_embedding_dim = 384

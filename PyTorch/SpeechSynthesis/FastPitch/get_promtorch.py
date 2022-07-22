@@ -3,6 +3,7 @@ import pandas as pd
 import torch
 from pathlib import Path
 
+
 def get_cwt_tensor(file, outpath):
     fname = Path(file).with_suffix('.pt').name
     fpath = Path(outpath, fname)
@@ -15,11 +16,11 @@ def get_cwt_tensor(file, outpath):
     torch.save(p_tensor, fpath)
 
 
-in_filepath = '/Users/emmashi/Desktop/labelled_file'
+in_filepath = '/Users/emmashi/Desktop/labelled_file_3C'
 os.chdir(in_filepath)
 head, tail = os.path.split(in_filepath)
 
-out_filepath = head + '/prom_tensor/'
+out_filepath = head + '/cwt_cat_3C/'
 os.makedirs(out_filepath, exist_ok=True)
 
 for file in glob.glob("*.prom"):

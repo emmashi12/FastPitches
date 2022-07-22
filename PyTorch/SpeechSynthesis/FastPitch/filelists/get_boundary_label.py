@@ -26,6 +26,15 @@ def get_prominence_label(value, data):
         return 1
 
 
+def get_prominence_label_3C(value):
+    if value < 0.6:
+        return 1
+    elif value >= 1.2:
+        return 3
+    else:
+        return 2
+
+
 def write_csv_file(out_filepath, data):
     data.to_csv(out_filepath, sep='\t')
 
@@ -36,13 +45,13 @@ cwd = os.getcwd()
 print("Current working directory is:", cwd)
 
 head, tail = os.path.split(in_filepath)
-out_filepath = head + '/labelled_file/'
+out_filepath = head + '/labelled_file_3C/'
 os.makedirs(out_filepath, exist_ok=True)
 
 for file in glob.glob('*.prom'):
     data, prom = load_file(file)
-    data['b_label'] = data.apply(lambda x: get_boundary_label(x.b_strength), axis=1)
-    data['p_label'] = data.apply(lambda x: get_prominence_label(x.p_strength, prom), axis=1)
+    # data['b_label'] = data.apply(lambda x: get_boundary_label(x.b_strength), axis=1)
+    data['p_label'] = data.apply(lambda x: get_prominence_label_3C(x.p_strength), axis=1)
     #print(data)
     #print(out_filepath + file)
     write_csv_file(out_filepath + file, data)
