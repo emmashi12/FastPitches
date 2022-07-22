@@ -411,7 +411,7 @@ class FastPitch(nn.Module):
 
         # Predict pitch (add pitch conditioning)
         if self.pitch_conditioning:
-            print("Model is predicting pitch")
+            # print("Model is predicting pitch")
             pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1)
             # print(f'pitch_pred shape: {pitch_pred.shape}')  # [batch_size, num_formants, text_len]
 
