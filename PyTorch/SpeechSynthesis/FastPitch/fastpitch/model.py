@@ -113,7 +113,7 @@ class MulticlassClassification(nn.Module):
     """Predicts a categorical label per each temporal location"""
     # for categorical cwt labels
     def __init__(self, input_size, filter_size, kernel_size, dropout,
-                 n_layers=2, n_predictions_cat=1):
+                 n_layers=2, n_predictions_cat=3):
         super(BinaryClassification, self).__init__()
         self.layers = nn.Sequential(*[
             ConvReLUNorm(input_size if i == 0 else filter_size, filter_size,
@@ -121,7 +121,7 @@ class MulticlassClassification(nn.Module):
             for i in range(n_layers)]
         )  # in_channels, out_channels, kernel_size=1, dropout=0.0
         self.n_predictions_cat = n_predictions_cat
-        self.fc = nn.Linear(filter_size, self.n_predictions, bias=True)
+        self.fc = nn.Linear(filter_size, self.n_predictions_cat, bias=True)
         # self.softmax = nn.Softmax(dim=1)
 
     def forward(self, enc_out, enc_out_mask):
@@ -254,7 +254,7 @@ class FastPitch(nn.Module):
                     kernel_size=cwt_predictor_kernel_size,
                     dropout=p_cwt_predictor_dropout,
                     n_layers=cwt_predictor_n_layers,
-                    n_predictions_cat=1)
+                    n_predictions_cat=3)
 
                 self.cwt_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
                 # for categorical label, symbols_embedding_dim = 384
@@ -386,7 +386,10 @@ class FastPitch(nn.Module):
                     cwt_emb = self.cwt_emb(cwt_pred)
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
             else:
-                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                cwt_pred = self.cwt_predictor(enc_out, enc_mask)
+                m = nn.Softmax(dim=2)
+                cwt_pred = m(cwt_pred)
+                cwt_pred = torch.argmax(cwt_pred, dim=2)
                 print(f'cwt_pred shape: {cwt_pred.shape}')
                 print(cwt_pred)
                 print(f'cwt_pred type: {cwt_pred.type()}')
@@ -397,7 +400,7 @@ class FastPitch(nn.Module):
                     cwt_emb = self.cwt_emb(cwt_tgt)
                     print(f'cwt_emb shape: {cwt_emb.shape}')  # [16, 124, 384]
                 else:
-                    cwt_pred = cwt_pred.squeeze(1)
+                    # cwt_pred = cwt_pred.squeeze(1)
                     cwt_emb = self.cwt_emb(cwt_pred)
                 enc_out = enc_out + cwt_emb
                 print(enc_out.shape)
