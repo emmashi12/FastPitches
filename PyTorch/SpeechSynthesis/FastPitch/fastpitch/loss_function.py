@@ -68,9 +68,9 @@ class FastPitchLoss(nn.Module):
         dur_pred_loss = loss_fn(log_dur_pred, log_dur_tgt, reduction='none')
         dur_pred_loss = (dur_pred_loss * dur_mask).sum() / dur_mask.sum()  # mask.sum() is for non-zero elements
 
-        # loss function for continuous cwt label
+        # loss function for cwt label
         if cwt_pred is not None:
-            print(f'cwt_pred shape: {cwt_pred.shape}')  # [8, 1, 128]
+            # print(f'cwt_pred shape: {cwt_pred.shape}')  # [8, 1, 128]
             if is_continuous:
                 # print("--------Continuous Loss--------")
                 cwt_tgt = cwt_tgt.unsqueeze(1)  # ------modified----- don't know why the dimension changed
@@ -79,7 +79,7 @@ class FastPitchLoss(nn.Module):
                 cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
                 cwt_loss = (cwt_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
             else:
-                print("--------Categorical Loss--------")
+                # print("--------Categorical Loss--------")
                 # cwt_pred = cwt_pred.permute(0, 2, 1)
                 cwt_loss = F.cross_entropy(cwt_pred, cwt_tgt, ignore_index=0)  # cross-entropy
                 print(cwt_loss)

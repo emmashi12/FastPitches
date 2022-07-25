@@ -175,7 +175,7 @@ class FastPitch(nn.Module):
                  cwt_conditioning,
                  cwt_predictor_kernel_size, cwt_predictor_filter_size,
                  p_cwt_predictor_dropout, cwt_predictor_n_layers,
-                 cwt_embedding_kernel_size, cwt_continuous,
+                 cwt_embedding_kernel_size, cwt_continuous, cwt_3C,
                  n_speakers, speaker_emb_weight, pitch_conditioning_formants=1):
         super(FastPitch, self).__init__()
 
@@ -245,6 +245,7 @@ class FastPitch(nn.Module):
         # -------------modified--------------
         self.cwt_conditioning = cwt_conditioning
         self.cwt_continuous = cwt_continuous  # conditioning for continuous cwt label
+        self.cwt_3C = cwt_3C  # conditioning for three classes of prominence
         if cwt_conditioning:
             print("Prominence Predictor")
             if cwt_continuous:
@@ -265,16 +266,28 @@ class FastPitch(nn.Module):
                 # symbols_embedding_dim=384, filter_size=256, kernel_size=3
             else:
                 print("--------Categorical CWT Predicting--------")
-                self.cwt_predictor = BinaryClassification(
-                    in_fft_output_size,
-                    filter_size=cwt_predictor_filter_size,
-                    kernel_size=cwt_predictor_kernel_size,
-                    dropout=p_cwt_predictor_dropout,
-                    n_layers=cwt_predictor_n_layers,
-                    n_predictions_cat=3)
+                if cwt_3C:
+                    print("3 CLASSES OF CWT")
+                    self.cwt_predictor = MulticlassPredictor(
+                        in_fft_output_size,
+                        filter_size=cwt_predictor_filter_size,
+                        kernel_size=cwt_predictor_kernel_size,
+                        dropout=p_cwt_predictor_dropout,
+                        n_layers=cwt_predictor_n_layers,
+                        n_predictions_cat_3C=4)
 
-                self.cwt_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
-                # for categorical label, symbols_embedding_dim = 384
+                    self.cwt_emb = nn.Embedding(4, symbols_embedding_dim, padding_idx=0)
+                else:
+                    self.cwt_predictor = BinaryClassification(
+                        in_fft_output_size,
+                        filter_size=cwt_predictor_filter_size,
+                        kernel_size=cwt_predictor_kernel_size,
+                        dropout=p_cwt_predictor_dropout,
+                        n_layers=cwt_predictor_n_layers,
+                        n_predictions_cat=3)
+    
+                    self.cwt_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
+                    # for categorical label, symbols_embedding_dim = 384
 
         self.energy_conditioning = energy_conditioning
         if energy_conditioning:
@@ -397,13 +410,12 @@ class FastPitch(nn.Module):
             else:
                 cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
                 m = nn.Softmax(dim=1)
-                cwt_pred_label = m(cwt_pred)  # [16, 2, 124]
+                cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
                 cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
-                print(f'cwt_pred type: {cwt_pred_label.type()}')
+                # print(f'cwt_pred type: {cwt_pred_label.type()}')
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
                     # cwt_tgt: [batch_size, text_len]
-                    print(f'cwt_tgt shape: {cwt_tgt.shape}')  # [16, 124]
                     cwt_emb = self.cwt_emb(cwt_tgt)
                 else:
                     cwt_emb = self.cwt_emb(cwt_pred_label)

@@ -29,6 +29,7 @@ export OMP_NUM_THREADS=1
 # Enable cwt conditioning
 : ${CWT:=false}
 : ${CWT_CON:=false}
+: ${CWT_3C:=false}
 : ${TEXT_CLEANERS:=english_cleaners_v2}
 # Add dummy space prefix/suffix is audio is not precisely trimmed
 : ${APPEND_SPACES:=false}
@@ -81,6 +82,7 @@ ARGS+=" --n-speakers $NSPEAKERS"
 [ "$ENERGY" = "true" ]             && ARGS+=" --energy-conditioning"
 [ "$CWT" = "true" ]                && ARGS+=" --cwt-conditioning"
 [ "$CWT_CON" = "true" ]            && ARGS+=" --cwt-continuous"
+[ "$CWT_3C" = "true" ]             && ARGS+=" --cwt-3C"
 [ "$SEED" != "" ]                  && ARGS+=" --seed $SEED"
 [ "$LOAD_MEL_FROM_DISK" = true ]   && ARGS+=" --load-mel-from-disk"
 [ "$LOAD_PITCH_FROM_DISK" = true ] && ARGS+=" --load-pitch-from-disk"
