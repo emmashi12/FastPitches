@@ -40,7 +40,7 @@ def add_column(infile="ljs_audio_pitch_text_test.txt", outfile=None):
                     f.write('{}\n'.format(rewrite))
 
 
-def remove_wav(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_train_v5.txt", infile2='/Users/emmashi/Desktop/incorrect_label_train.txt', outfile=None):
+def remove_wav(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_test.txt", infile2='/Users/emmashi/Desktop/incorrect_label_test.txt', outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     column_names = ['id', 'text']
     data = pd.read_csv(infile2, names=column_names, header=None, quoting=csv.QUOTE_NONE, delimiter='\t')
@@ -56,7 +56,7 @@ def remove_wav(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_train_v5
             print(wavpath)
             #print(type(wavpath))
             if wavpath not in ids and outfile:
-                with open("ljs_audio_pitch_prom_text_train_v6.txt", 'a') as f:
+                with open("ljs_audio_pitch_prom_text_test_con.txt", 'a') as f:
                     f.write('{}'.format(l))
 
 
@@ -79,6 +79,6 @@ def extract_infer_text(infile="/Users/emmashi/Desktop/test_infer.txt", outfile=N
 
 
 # extract_text(outfile=True)
-add_column(outfile=True)
-# remove_wav(outfile=True)
+# add_column(outfile=True)
+remove_wav(outfile=True)
 # extract_infer_text(outfile=True)
