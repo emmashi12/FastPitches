@@ -75,7 +75,7 @@ def extract_infer_text(infile="/Users/emmashi/Desktop/test_infer.txt", outfile=N
             if outfile:
                 os.chdir(out_filepath)
                 with open("infer_test.txt", 'a') as f:
-                    f.write('{}'.format(text))
+                    f.write('{}\n'.format(text))
 
 
 # extract_text(outfile=True)

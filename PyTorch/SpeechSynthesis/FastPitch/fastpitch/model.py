@@ -109,7 +109,7 @@ class TemporalPredictor(nn.Module):
         return out
 
 
-class MulticlassClassification(nn.Module):
+class BinaryClassification(nn.Module):
     """Predicts a categorical label per each temporal location"""
     # for categorical cwt labels
     def __init__(self, input_size, filter_size, kernel_size, dropout,
@@ -248,7 +248,7 @@ class FastPitch(nn.Module):
                 # symbols_embedding_dim=384, filter_size=256, kernel_size=3
             else:
                 print("--------Categorical CWT Predicting--------")
-                self.cwt_predictor = MulticlassClassification(
+                self.cwt_predictor = BinaryClassification(
                     in_fft_output_size,
                     filter_size=cwt_predictor_filter_size,
                     kernel_size=cwt_predictor_kernel_size,
