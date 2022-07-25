@@ -454,7 +454,7 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             print(f'mel_out shape in y_pred: {y_pred[0].shape}')
             print(f'mel_tgt shape in x: {x[2].shape}')
 
-            loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum', is_continuous=True)
+            loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum', is_continuous=False)
             if i % 5 == 0:
                 log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
 
@@ -722,7 +722,7 @@ def main():
             with torch.cuda.amp.autocast(enabled=args.amp):
                 print("start training")
                 y_pred = model(x) #forward pass starts (calling the model)
-                loss, meta = criterion(y_pred, y, is_continuous=True)  # -----modified-----
+                loss, meta = criterion(y_pred, y, is_continuous=False)  # -----modified-----
 
                 if (args.kl_loss_start_epoch is not None
                         and epoch >= args.kl_loss_start_epoch):
