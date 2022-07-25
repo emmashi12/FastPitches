@@ -80,7 +80,6 @@ class FastPitchLoss(nn.Module):
                 cwt_loss = (cwt_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
             else:
                 # print("--------Categorical Loss--------")
-                # cwt_pred = cwt_pred.permute(0, 2, 1)
                 cwt_loss = F.cross_entropy(cwt_pred, cwt_tgt, ignore_index=0)  # cross-entropy
                 print(cwt_loss)
         else:
