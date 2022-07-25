@@ -134,6 +134,26 @@ class BinaryClassification(nn.Module):
         return out
 
 
+class MulticlassPredictor(nn.Module):
+    """Predicts a categorical label per each temporal location"""
+    def __init__(self, input_size, filter_size, kernel_size, dropout,
+                 n_layers=2, n_predictions_cat_3C=4):
+        super(MulticlassPredictor, self).__init__()
+        self.layers = nn.Sequential(*[
+            ConvReLUNorm(input_size if i == 0 else filter_size, filter_size,
+                         kernel_size=kernel_size, dropout=dropout)
+            for i in range(n_layers)])
+        self.n_predictors_cat_3C = n_predictions_cat_3C
+        self.fc = nn.Linear(filter_size, self.n_predictors_cat_3C, bias=True)
+
+    def forward(self, enc_out, enc_out_mask):
+        out = enc_out * enc_out_mask
+        out = self.layers(out.transpose(1, 2)).transpose(1, 2)
+        out = self.fc(out)
+        out = out * enc_out_mask
+        return out
+
+
 class FastPitch(nn.Module):
     def __init__(self, n_mel_channels, n_symbols, padding_idx,
                  symbols_embedding_dim, in_fft_n_layers, in_fft_n_heads,
@@ -387,12 +407,9 @@ class FastPitch(nn.Module):
             else:
                 cwt_pred = self.cwt_predictor(enc_out, enc_mask)
                 m = nn.Softmax(dim=2)
-                cwt_pred = m(cwt_pred)
-                print(f'cwt_pred after softmax shape: {cwt_pred.shape}')  # [16, 124, 2]
-                cwt_pred = torch.argmax(cwt_pred, dim=2)
-                print(f'cwt_pred after argmax shape: {cwt_pred.shape}')  # [16, 124]
-                # print(cwt_pred)
-                print(f'cwt_pred type: {cwt_pred.type()}')
+                cwt_pred_label = m(cwt_pred)  # [16, 124, 2]
+                cwt_pred_label = torch.argmax(cwt_pred_label, dim=2)  # [16, 124]
+                print(f'cwt_pred type: {cwt_pred_label.type()}')
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
                     # cwt_tgt: [batch_size, text_len]
@@ -401,7 +418,7 @@ class FastPitch(nn.Module):
                     print(f'cwt_emb shape: {cwt_emb.shape}')  # [16, 124, 384]
                 else:
                     # cwt_pred = cwt_pred.squeeze(1)
-                    cwt_emb = self.cwt_emb(cwt_pred)
+                    cwt_emb = self.cwt_emb(cwt_pred_label)
                 enc_out = enc_out + cwt_emb
                 print(enc_out.shape)
         else:
