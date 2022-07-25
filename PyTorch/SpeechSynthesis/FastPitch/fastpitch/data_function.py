@@ -399,8 +399,8 @@ class TTSDataset(torch.utils.data.Dataset):
 
             # print(upsampled)
             # print(len(upsampled))
-            cwt_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
-            # cwt_tensor = torch.Tensor(upsampled)  # for continuous label
+            # cwt_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
+            cwt_tensor = torch.Tensor(upsampled)  # for continuous label
             # print(cwt_tensor.type())
             assert list(cwt_tensor.size())[0] == total_symbols
 
@@ -430,8 +430,8 @@ class TTSCollate:
         # num_cwt = batch[0][8].size(0)
         # print(f'num_cwt: {num_cwt}')
         if batch[0][8] is not None:
-            # cwt_padded = torch.FloatTensor(len(batch), max_input_len)  # for continuous label
-            cwt_padded = torch.LongTensor(len(batch), max_input_len)  # for categorical label
+            cwt_padded = torch.FloatTensor(len(batch), max_input_len)  # for continuous label
+            # cwt_padded = torch.LongTensor(len(batch), max_input_len)  # for categorical label
             cwt_padded.zero_()
             for i in range(len(ids_sorted_decreasing)):
                 cwt = batch[ids_sorted_decreasing[i]][8]
@@ -501,8 +501,8 @@ def batch_to_gpu(batch):
     pitch_padded = to_gpu(pitch_padded).float()
     energy_padded = to_gpu(energy_padded).float()
     attn_prior = to_gpu(attn_prior).float()
-    # cwt_padded = to_gpu(cwt_padded).float()  # for continuous
-    cwt_padded = to_gpu(cwt_padded).long()  # for categorical
+    cwt_padded = to_gpu(cwt_padded).float()  # for continuous
+    # cwt_padded = to_gpu(cwt_padded).long()  # for categorical
     if speaker is not None:
         speaker = to_gpu(speaker).long()
 
