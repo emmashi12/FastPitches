@@ -122,15 +122,12 @@ class BinaryClassification(nn.Module):
         )  # in_channels, out_channels, kernel_size=1, dropout=0.0
         self.n_predictions_cat = n_predictions_cat
         self.fc = nn.Linear(filter_size, self.n_predictions_cat, bias=True)
-        # self.softmax = nn.Softmax(dim=1)
 
     def forward(self, enc_out, enc_out_mask):
         out = enc_out * enc_out_mask
         out = self.layers(out.transpose(1, 2)).transpose(1, 2)
-        out = self.fc(out)
-        print(f"out shape after fc layer: {out.shape}")  # [16, 134, 2]
-        out = out * enc_out_mask
-        print(f"out shape after multiply enc_out_mask: {out.shape}")  # [16, 136, 1]
+        out = self.fc(out)  # [16, 134, 3]
+        out = out * enc_out_mask  # [16, 134, 3]
         return out
 
 
@@ -339,11 +336,6 @@ class FastPitch(nn.Module):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
          speaker, attn_prior, audiopaths, cwt_tgt) = inputs  # --------modified--------
-        # print(f'inputs shape: {inputs.shape}')
-        # print(f'cwt_tgt shape: {cwt_tgt.shape}')
-        # print(f'mel_tgt shape: {mel_tgt.shape}')
-        # print(f'pitch_dense: {pitch_dense}')
-
         # inputs: [16, 140] [batch_size, text_len]
         # mel_tgt: [batch_size, mel-channel, mel_len]
         # spk_emb: None
@@ -365,8 +357,6 @@ class FastPitch(nn.Module):
 
         # Input FFT
         enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb)  # forward() in transformer.py
-        # print(f'enc_out shape: {enc_out.shape}')
-        # print(f'enc_mask shape: {enc_mask.shape}')
 
         # Alignment
         text_emb = self.encoder.word_emb(inputs)
@@ -405,22 +395,19 @@ class FastPitch(nn.Module):
                     cwt_emb = self.cwt_emb(cwt_pred)
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
             else:
-                cwt_pred = self.cwt_predictor(enc_out, enc_mask)
-                m = nn.Softmax(dim=2)
-                cwt_pred_label = m(cwt_pred)  # [16, 124, 2]
-                cwt_pred_label = torch.argmax(cwt_pred_label, dim=2)  # [16, 124]
+                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                m = nn.Softmax(dim=1)
+                cwt_pred_label = m(cwt_pred)  # [16, 2, 124]
+                cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
                 print(f'cwt_pred type: {cwt_pred_label.type()}')
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
                     # cwt_tgt: [batch_size, text_len]
                     print(f'cwt_tgt shape: {cwt_tgt.shape}')  # [16, 124]
                     cwt_emb = self.cwt_emb(cwt_tgt)
-                    print(f'cwt_emb shape: {cwt_emb.shape}')  # [16, 124, 384]
                 else:
-                    # cwt_pred = cwt_pred.squeeze(1)
                     cwt_emb = self.cwt_emb(cwt_pred_label)
                 enc_out = enc_out + cwt_emb
-                print(enc_out.shape)
         else:
             cwt_pred = None
 
