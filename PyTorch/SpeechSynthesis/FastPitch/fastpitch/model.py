@@ -379,7 +379,6 @@ class FastPitch(nn.Module):
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting continuous number
                 if use_gt_cwt and cwt_tgt is not None:
                     cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
-                    # print(f'cwt_tgt type: {cwt_tgt.type()}')
                     cwt_emb = self.cwt_emb(cwt_tgt)
                     # print(f'cwt_emb shape: {cwt_emb.shape}')
                 else:
@@ -389,10 +388,10 @@ class FastPitch(nn.Module):
                 cwt_pred = self.cwt_predictor(enc_out, enc_mask)
                 m = nn.Softmax(dim=2)
                 cwt_pred = m(cwt_pred)
-                print(f'cwt_pred after softmax shape: {cwt_pred.shape}')
+                print(f'cwt_pred after softmax shape: {cwt_pred.shape}')  # [16, 124, 2]
                 cwt_pred = torch.argmax(cwt_pred, dim=2)
-                print(f'cwt_pred after argmax shape: {cwt_pred.shape}')
-                print(cwt_pred)
+                print(f'cwt_pred after argmax shape: {cwt_pred.shape}')  # [16, 124]
+                # print(cwt_pred)
                 print(f'cwt_pred type: {cwt_pred.type()}')
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
