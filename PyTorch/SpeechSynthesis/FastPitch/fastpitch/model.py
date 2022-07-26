@@ -176,6 +176,9 @@ class FastPitch(nn.Module):
                  cwt_predictor_kernel_size, cwt_predictor_filter_size,
                  p_cwt_predictor_dropout, cwt_predictor_n_layers,
                  cwt_embedding_kernel_size, cwt_continuous, cwt_3C,
+                 # b_conditioning,
+                 # b_predictor_kernel_size, b_predictor_filter_size,
+                 # p_b_predictor_dropout, b_predictor_n_layers,
                  n_speakers, speaker_emb_weight, pitch_conditioning_formants=1):
         super(FastPitch, self).__init__()
 
@@ -289,6 +292,18 @@ class FastPitch(nn.Module):
                     self.cwt_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
                     # for categorical label, symbols_embedding_dim = 384
 
+        # self.b_conditioning = b_conditioning
+        # if b_conditioning:
+        #     print("Boundary Predictor")
+        #     self.b_predictor = MulticlassPredictor(
+        #                 in_fft_output_size,
+        #                 filter_size=b_predictor_filter_size,
+        #                 kernel_size=b_predictor_kernel_size,
+        #                 dropout=p_b_predictor_dropout,
+        #                 n_layers=b_predictor_n_layers,
+        #                 n_predictions_cat_3C=4)
+        #     self.b_emb = nn.Embedding(4, symbols_embedding_dim, padding_idx=0)
+
         self.energy_conditioning = energy_conditioning
         if energy_conditioning:
             print("Energy Predictor")
@@ -348,7 +363,8 @@ class FastPitch(nn.Module):
     def forward(self, inputs, use_gt_pitch=True, use_gt_cwt=True, pace=1.0, max_duration=75):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
-         speaker, attn_prior, audiopaths, cwt_tgt) = inputs  # --------modified--------
+         speaker, attn_prior, audiopaths, cwt_tgt) = inputs  # --------modified-------- add b_tgt
+        # add use_gt_b=True to input
         # inputs: [16, 140] [batch_size, text_len]
         # mel_tgt: [batch_size, mel-channel, mel_len]
         # spk_emb: None
@@ -390,12 +406,12 @@ class FastPitch(nn.Module):
             attn_soft, input_lens, mel_lens)
 
         # Viterbi --> durations
-        attn_hard_dur = attn_hard.sum(2)[:, 0, :] # 2 refers to the axis
+        attn_hard_dur = attn_hard.sum(2)[:, 0, :]  # 2 refers to the axis
         dur_tgt = attn_hard_dur
 
         assert torch.all(torch.eq(dur_tgt.sum(dim=1), mel_lens))
 
-        # Predict prominence -------------modified--------------
+        # Predict prominence and boundary in parallel -------------modified--------------
         if self.cwt_conditioning:
             if self.cwt_continuous:
                 cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
@@ -409,16 +425,14 @@ class FastPitch(nn.Module):
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
             else:
                 cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                print(f'cwt_pred before softmax: {cwt_pred}')
+                # print(f'cwt_pred before softmax: {cwt_pred}')
                 m = nn.Softmax(dim=1)
                 cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
-                print(f'cwt_pred after softmax: {cwt_pred_label}')
+                # print(f'cwt_pred after softmax: {cwt_pred_label}')
                 cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
-                print(f'cwt_pred after argmax: {cwt_pred_label}')
+                # print(f'cwt_pred after argmax: {cwt_pred_label}')
                 # print(f'cwt_pred type: {cwt_pred_label.type()}')
-                # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
-                    # cwt_tgt: [batch_size, text_len]
                     cwt_emb = self.cwt_emb(cwt_tgt)
                 else:
                     cwt_emb = self.cwt_emb(cwt_pred_label)
@@ -502,10 +516,12 @@ class FastPitch(nn.Module):
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
             else:
                 if cwt_tgt is None:
-                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).squeeze(1)
-                    cwt_emb = self.cwt_emb(cwt_pred)
+                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                    m = nn.Softmax(dim=1)
+                    cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
+                    cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
+                    cwt_emb = self.cwt_emb(cwt_pred_label)
                 else:
-                    print(cwt_tgt)
                     cwt_emb = self.cwt_emb(cwt_tgt)
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
         else:
