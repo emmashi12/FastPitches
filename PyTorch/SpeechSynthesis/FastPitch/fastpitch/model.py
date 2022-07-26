@@ -445,7 +445,7 @@ class FastPitch(nn.Module):
                     cwt_emb = self.cwt_emb(cwt_tgt)
                 else:
                     cwt_emb = self.cwt_emb(cwt_pred_label)
-                enc_out = enc_out + cwt_emb.transpose(1, 2)
+                enc_out = enc_out + cwt_emb
             # else:
         else:
             cwt_pred = None
@@ -533,7 +533,7 @@ class FastPitch(nn.Module):
                     cwt_emb = self.cwt_emb(cwt_pred_label)
                 else:
                     cwt_emb = self.cwt_emb(cwt_tgt)
-                enc_out = enc_out + cwt_emb.transpose(1, 2)
+                enc_out = enc_out + cwt_emb
         else:
             cwt_pred = None
 
