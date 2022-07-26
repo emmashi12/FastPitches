@@ -363,7 +363,7 @@ class FastPitch(nn.Module):
     def forward(self, inputs, use_gt_pitch=True, use_gt_cwt=True, pace=1.0, max_duration=75):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
-         speaker, attn_prior, audiopaths, cwt_tgt) = inputs  # --------modified-------- add b_tgt
+         speaker, attn_prior, audiopaths, cwt_tgt) = inputs  # --------modified-------- b_tgt
         # add use_gt_b=True to input
         # inputs: [16, 140] [batch_size, text_len]
         # mel_tgt: [batch_size, mel-channel, mel_len]
@@ -413,13 +413,22 @@ class FastPitch(nn.Module):
 
         # Predict prominence and boundary in parallel -------------modified--------------
         if self.cwt_conditioning:
+            # if self.b_conditioning:
+            #     b_pred = self.b_predictor(enc_out, enc_mask).permute(0, 2, 1)
+            #     m = nn.Softmax(dim=1)
+            #     b_pred_label = m(b_pred)
+            #     b_pred_label = torch.argmax(b_pred_label, dim=1)
+            #     if use_gt_b and b_tgt is not None:
+            #         b_emb = self.b_emb(b_tgt)
+            #     else:
+            #         b_emb = self.b_emb(b_pred_label)
+
             if self.cwt_continuous:
                 cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting continuous number
                 if use_gt_cwt and cwt_tgt is not None:
                     cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
                     cwt_emb = self.cwt_emb(cwt_tgt)
-                    # print(f'cwt_emb shape: {cwt_emb.shape}')
                 else:
                     cwt_emb = self.cwt_emb(cwt_pred)
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
@@ -436,7 +445,8 @@ class FastPitch(nn.Module):
                     cwt_emb = self.cwt_emb(cwt_tgt)
                 else:
                     cwt_emb = self.cwt_emb(cwt_pred_label)
-                enc_out = enc_out + cwt_emb
+                enc_out = enc_out + cwt_emb.transpose(1, 2)
+            # else:
         else:
             cwt_pred = None
 
