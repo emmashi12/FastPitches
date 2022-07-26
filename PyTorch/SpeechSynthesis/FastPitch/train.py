@@ -487,15 +487,6 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
         loss_log['cwt-loss/validation-cwt-loss'] = val_meta['cwt_loss'].item()
 
     log(loss_log, rank)
-    # log({
-    #     'loss/validation-loss': val_meta['loss'].item(),
-    #     'mel-loss/validation-mel-loss': val_meta['mel_loss'].item(),
-    #     'pitch-loss/validation-pitch-loss': val_meta['pitch_loss'].item(),
-    #     'energy-loss/validation-energy-loss': val_meta['energy_loss'].item(),
-    #     'dur-loss/validation-dur-error': val_meta['duration_predictor_loss'].item(),
-    #     'validation-frames per s': num_frames.item() / val_meta['took'],
-    #     'validation-took': val_meta['took'],
-    # }, rank)  # add cwt_loss
 
     if was_training:
         model.train()
