@@ -37,22 +37,24 @@ class FastPitchLoss(nn.Module):
     def __init__(self, dur_predictor_loss_scale=1.0,
                  pitch_predictor_loss_scale=1.0, attn_loss_scale=1.0,
                  energy_predictor_loss_scale=0.1,
-                 cwt_predictor_loss_scale=1.0):
+                 cwt_prom_predictor_loss_scale=1.0,
+                 cwt_b_predictor_loss_scale=1.0):
         super(FastPitchLoss, self).__init__()
         self.dur_predictor_loss_scale = dur_predictor_loss_scale
         self.pitch_predictor_loss_scale = pitch_predictor_loss_scale
         self.energy_predictor_loss_scale = energy_predictor_loss_scale
-        self.cwt_predictor_loss_scale = cwt_predictor_loss_scale  # -------modified--------
+        self.cwt_prom_predictor_loss_scale = cwt_prom_predictor_loss_scale  # -------modified--------
+        self.cwt_b_predictor_loss_scale = cwt_b_predictor_loss_scale
         self.attn_loss_scale = attn_loss_scale
         self.attn_ctc_loss = AttentionCTCLoss()
 
     def forward(self, model_out, targets, is_training=True, meta_agg='mean', is_continuous=True):
         (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred, pitch_tgt,
          energy_pred, energy_tgt, attn_soft, attn_hard, attn_dur,
-         attn_logprob, cwt_pred, cwt_tgt) = model_out  # from forward() in model.py
+         attn_logprob, cwt_prom_pred, cwt_prom_tgt, cwt_b_pred, cwt_b_tgt) = model_out  # from forward() in model.py
 
-        (mel_tgt, in_lens, out_lens, cwt_tgt) = targets  # --------modified-----------
-        # mel_tgt is mel_padded, cwt_tgt is cwt_padded
+        (mel_tgt, in_lens, out_lens, cwt_prom_tgt, cwt_b_tgt) = targets  # --------modified-----------
+        # mel_tgt is mel_padded, cwt_prom_tgt is cwt_prom_padded
 
         dur_tgt = attn_dur
         dur_lens = in_lens
@@ -69,21 +71,27 @@ class FastPitchLoss(nn.Module):
         dur_pred_loss = (dur_pred_loss * dur_mask).sum() / dur_mask.sum()  # mask.sum() is for non-zero elements
 
         # loss function for cwt label
-        if cwt_pred is not None:
+        if cwt_prom_pred is not None:
             # print(f'cwt_pred shape: {cwt_pred.shape}')  # [8, 1, 128]
             if is_continuous:
                 # print("--------Continuous Loss--------")
-                cwt_tgt = cwt_tgt.unsqueeze(1)  # ------modified----- don't know why the dimension changed
-                ldiff = cwt_tgt.size(2) - cwt_pred.size(2)  # [batch_size, 1, text_len]
-                cwt_pred = F.pad(cwt_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
-                cwt_loss = F.mse_loss(cwt_tgt, cwt_pred, reduction='none')
-                cwt_loss = (cwt_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
+                cwt_prom_tgt = cwt_prom_tgt.unsqueeze(1)  # ------modified----- don't know why the dimension changed
+                ldiff = cwt_prom_tgt.size(2) - cwt_prom_pred.size(2)  # [batch_size, 1, text_len]
+                cwt_prom_pred = F.pad(cwt_prom_pred, (0, ldiff, 0, 0, 0, 0), value=0.0)
+                cwt_prom_loss = F.mse_loss(cwt_prom_tgt, cwt_prom_pred, reduction='none')
+                cwt_prom_loss = (cwt_prom_loss * dur_mask.unsqueeze(1)).sum() / dur_mask.sum()
             else:
                 # print("--------Categorical Loss--------")
-                cwt_loss = F.cross_entropy(cwt_pred, cwt_tgt, ignore_index=0)  # cross-entropy
+                cwt_prom_loss = F.cross_entropy(cwt_prom_pred, cwt_prom_tgt, ignore_index=0)  # cross-entropy
                 # print(cwt_loss)
         else:
-            cwt_loss = 0
+            cwt_prom_loss = 0
+
+        if cwt_b_pred is not None:
+            cwt_b_loss = F.cross_entropy(cwt_b_pred, cwt_b_tgt, ignore_index=0)  # cross-entropy
+            # print(cwt_b_loss)
+        else:
+            cwt_b_loss = 0
 
         ldiff = mel_tgt.size(1) - mel_out.size(1)
         mel_out = F.pad(mel_out, (0, 0, 0, ldiff, 0, 0), value=0.0)
@@ -116,7 +124,8 @@ class FastPitchLoss(nn.Module):
                 + pitch_loss * self.pitch_predictor_loss_scale
                 + energy_loss * self.energy_predictor_loss_scale
                 + attn_loss * self.attn_loss_scale
-                + cwt_loss * self.cwt_predictor_loss_scale
+                + cwt_prom_loss * self.cwt_prom_predictor_loss_scale
+                + cwt_b_loss * self.cwt_b_predictor_loss_scale
                 )  # ------modified--------
 
         meta = {
@@ -131,8 +140,11 @@ class FastPitchLoss(nn.Module):
         if pitch_pred is not None:
             meta['pitch_loss'] = pitch_loss.clone().detach()
 
-        if cwt_pred is not None:
-            meta['cwt_loss'] = cwt_loss.clone().detach()
+        if cwt_prom_pred is not None:
+            meta['cwt_prom_loss'] = cwt_prom_loss.clone().detach()
+
+        if cwt_b_pred is not None:
+            meta['cwt_b_loss'] = cwt_b_loss.clone().detach()
 
         if energy_pred is not None:
             meta['energy_loss'] = energy_loss.clone().detach()

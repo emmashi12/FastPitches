@@ -173,12 +173,13 @@ class FastPitch(nn.Module):
                  p_energy_predictor_dropout, energy_predictor_n_layers,
                  energy_embedding_kernel_size,
                  cwt_conditioning,
-                 cwt_predictor_kernel_size, cwt_predictor_filter_size,
-                 p_cwt_predictor_dropout, cwt_predictor_n_layers,
-                 cwt_embedding_kernel_size, cwt_continuous, cwt_3C,
-                 # b_conditioning,
-                 # b_predictor_kernel_size, b_predictor_filter_size,
-                 # p_b_predictor_dropout, b_predictor_n_layers,
+                 cwt_prom_conditioning,
+                 cwt_prom_predictor_kernel_size, cwt_prom_predictor_filter_size,
+                 p_cwt_prom_predictor_dropout, cwt_prom_predictor_n_layers,
+                 cwt_prom_embedding_kernel_size, cwt_prom_continuous, cwt_prom_3C,
+                 cwt_b_conditioning,
+                 cwt_b_predictor_kernel_size, cwt_b_predictor_filter_size,
+                 p_cwt_b_predictor_dropout, cwt_b_predictor_n_layers,
                  n_speakers, speaker_emb_weight, pitch_conditioning_formants=1):
         super(FastPitch, self).__init__()
 
@@ -247,62 +248,62 @@ class FastPitch(nn.Module):
 
         # -------------modified--------------
         self.cwt_conditioning = cwt_conditioning
-        self.cwt_continuous = cwt_continuous  # conditioning for continuous cwt label
-        self.cwt_3C = cwt_3C  # conditioning for three classes of prominence
-        if cwt_conditioning:
+        self.cwt_prom_conditioning = cwt_prom_conditioning
+        self.cwt_prom_continuous = cwt_prom_continuous  # conditioning for continuous cwt label
+        self.cwt_prom_3C = cwt_prom_3C  # conditioning for three classes of prominence
+        if cwt_prom_conditioning:
             print("Prominence Predictor")
-            if cwt_continuous:
+            if cwt_prom_continuous:
                 print("--------Continuous CWT Predicting--------")
-                self.cwt_predictor = TemporalPredictor(
+                self.cwt_prom_predictor = TemporalPredictor(
                     in_fft_output_size,
-                    filter_size=cwt_predictor_filter_size,
-                    kernel_size=cwt_predictor_kernel_size,
-                    dropout=p_cwt_predictor_dropout,
-                    n_layers=cwt_predictor_n_layers,
+                    filter_size=cwt_prom_predictor_filter_size,
+                    kernel_size=cwt_prom_predictor_kernel_size,
+                    dropout=p_cwt_prom_predictor_dropout,
+                    n_layers=cwt_prom_predictor_n_layers,
                     n_predictions=1)
 
-                # print("cwt embedding")
-                self.cwt_emb = nn.Conv1d(
+                self.cwt_prom_emb = nn.Conv1d(
                     1, symbols_embedding_dim,
-                    kernel_size=cwt_embedding_kernel_size,
-                    padding=int((cwt_embedding_kernel_size - 1) / 2))  # for continuous label
+                    kernel_size=cwt_prom_embedding_kernel_size,
+                    padding=int((cwt_prom_embedding_kernel_size - 1) / 2))  # for continuous label
                 # symbols_embedding_dim=384, filter_size=256, kernel_size=3
             else:
                 print("--------Categorical CWT Predicting--------")
-                if cwt_3C:
+                if cwt_prom_3C:
                     print("3 CLASSES OF CWT")
-                    self.cwt_predictor = MulticlassPredictor(
+                    self.cwt_prom_predictor = MulticlassPredictor(
                         in_fft_output_size,
-                        filter_size=cwt_predictor_filter_size,
-                        kernel_size=cwt_predictor_kernel_size,
-                        dropout=p_cwt_predictor_dropout,
-                        n_layers=cwt_predictor_n_layers,
+                        filter_size=cwt_prom_predictor_filter_size,
+                        kernel_size=cwt_prom_predictor_kernel_size,
+                        dropout=p_cwt_prom_predictor_dropout,
+                        n_layers=cwt_prom_predictor_n_layers,
                         n_predictions_cat_3C=4)
 
-                    self.cwt_emb = nn.Embedding(4, symbols_embedding_dim, padding_idx=0)
+                    self.cwt_prom_emb = nn.Embedding(4, symbols_embedding_dim, padding_idx=0)
                 else:
-                    self.cwt_predictor = BinaryClassification(
+                    self.cwt_prom_predictor = BinaryClassification(
                         in_fft_output_size,
-                        filter_size=cwt_predictor_filter_size,
-                        kernel_size=cwt_predictor_kernel_size,
-                        dropout=p_cwt_predictor_dropout,
-                        n_layers=cwt_predictor_n_layers,
+                        filter_size=cwt_prom_predictor_filter_size,
+                        kernel_size=cwt_prom_predictor_kernel_size,
+                        dropout=p_cwt_prom_predictor_dropout,
+                        n_layers=cwt_prom_predictor_n_layers,
                         n_predictions_cat=3)
     
-                    self.cwt_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
+                    self.cwt_prom_emb = nn.Embedding(3, symbols_embedding_dim, padding_idx=0)
                     # for categorical label, symbols_embedding_dim = 384
 
-        # self.b_conditioning = b_conditioning
-        # if b_conditioning:
-        #     print("Boundary Predictor")
-        #     self.b_predictor = MulticlassPredictor(
-        #                 in_fft_output_size,
-        #                 filter_size=b_predictor_filter_size,
-        #                 kernel_size=b_predictor_kernel_size,
-        #                 dropout=p_b_predictor_dropout,
-        #                 n_layers=b_predictor_n_layers,
-        #                 n_predictions_cat_3C=4)
-        #     self.b_emb = nn.Embedding(4, symbols_embedding_dim, padding_idx=0)
+        self.cwt_b_conditioning = cwt_b_conditioning
+        if cwt_b_conditioning:
+            print("Boundary Predictor")
+            self.cwt_b_predictor = MulticlassPredictor(
+                        in_fft_output_size,
+                        filter_size=cwt_b_predictor_filter_size,
+                        kernel_size=cwt_b_predictor_kernel_size,
+                        dropout=p_cwt_b_predictor_dropout,
+                        n_layers=cwt_b_predictor_n_layers,
+                        n_predictions_cat_3C=4)
+            self.cwt_b_emb = nn.Embedding(4, symbols_embedding_dim, padding_idx=0)
 
         self.energy_conditioning = energy_conditioning
         if energy_conditioning:
@@ -360,10 +361,10 @@ class FastPitch(nn.Module):
                              out_lens.cpu().numpy(), width=1)
         return torch.from_numpy(attn_out).to(attn.get_device())
 
-    def forward(self, inputs, use_gt_pitch=True, use_gt_cwt=True, use_gt_b=True, pace=1.0, max_duration=75):
+    def forward(self, inputs, use_gt_pitch=True, use_gt_cwt_prom=True, use_gt_cwt_b=True, pace=1.0, max_duration=75):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
-         speaker, attn_prior, audiopaths, cwt_tgt, b_tgt) = inputs  # --------modified-------- b_tgt
+         speaker, attn_prior, audiopaths, cwt_prom_tgt, cwt_b_tgt) = inputs  # --------modified-------- b_tgt
         # add use_gt_b=True to input
         # inputs: [16, 140] [batch_size, text_len]
         # mel_tgt: [batch_size, mel-channel, mel_len]
@@ -413,66 +414,54 @@ class FastPitch(nn.Module):
 
         # Predict prominence and boundary in parallel -------------modified--------------
         if self.cwt_conditioning:
-            if self.b_conditioning:
-                b_pred = self.b_predictor(enc_out, enc_mask).permute(0, 2, 1)
+            cwt_b_emb = None
+            cwt_prom_emb = None
+            if self.cwt_b_conditioning:
+                cwt_b_pred = self.cwt_b_predictor(enc_out, enc_mask).permute(0, 2, 1)
                 m = nn.Softmax(dim=1)
-                b_pred_label = m(b_pred)
+                b_pred_label = m(cwt_b_pred)
                 b_pred_label = torch.argmax(b_pred_label, dim=1)
-                if use_gt_b and b_tgt is not None:
-                    b_emb = self.b_emb(b_tgt)
+                if use_gt_cwt_b and cwt_b_tgt is not None:
+                    cwt_b_emb = self.cwt_b_emb(cwt_b_tgt)
                 else:
-                    b_emb = self.b_emb(b_pred_label)
-
-                if self.cwt_continuous:
-                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                    # cwt_pred.shape: [batch_size, 1, text_len], when predicting continuous number
-                    if use_gt_cwt and cwt_tgt is not None:
-                        cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
-                        cwt_emb = self.cwt_emb(cwt_tgt)
-                    else:
-                        cwt_emb = self.cwt_emb(cwt_pred)
-                        cwt_emb = cwt_emb.transpose(1, 2)
-                else:
-                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                    # print(f'cwt_pred before softmax: {cwt_pred}')
-                    m = nn.Softmax(dim=1)
-                    cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
-                    # print(f'cwt_pred after softmax: {cwt_pred_label}')
-                    cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
-                    # print(f'cwt_pred after argmax: {cwt_pred_label}')
-                    # print(f'cwt_pred type: {cwt_pred_label.type()}')
-                    if use_gt_cwt and cwt_tgt is not None:
-                        cwt_emb = self.cwt_emb(cwt_tgt)
-                    else:
-                        cwt_emb = self.cwt_emb(cwt_pred_label)
-                enc_out = enc_out + b_emb + cwt_emb
+                    cwt_b_emb = self.b_emb(b_pred_label)
             else:
-                b_pred = None
-                if self.cwt_continuous:
-                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                cwt_b_pred = None
+
+            if self.cwt_prom_conditioning:
+                if self.cwt_prom_continuous:
+                    cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
                     # cwt_pred.shape: [batch_size, 1, text_len], when predicting continuous number
-                    if use_gt_cwt and cwt_tgt is not None:
-                        cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
-                        cwt_emb = self.cwt_emb(cwt_tgt)
+                    if use_gt_cwt_prom and cwt_prom_tgt is not None:
+                        cwt_prom_tgt = cwt_prom_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
+                        cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt)
                     else:
-                        cwt_emb = self.cwt_emb(cwt_pred)
-                        cwt_emb = cwt_emb.transpose(1, 2)
+                        cwt_prom_emb = self.cwt_prom_emb(cwt_prom_pred)
+                        cwt_prom_emb = cwt_prom_emb.transpose(1, 2)
                 else:
-                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                    cwt_prom_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
                     # print(f'cwt_pred before softmax: {cwt_pred}')
                     m = nn.Softmax(dim=1)
-                    cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
+                    cwt_pred_label = m(cwt_prom_pred)  # [16, 3, 124]
                     # print(f'cwt_pred after softmax: {cwt_pred_label}')
                     cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
                     # print(f'cwt_pred after argmax: {cwt_pred_label}')
                     # print(f'cwt_pred type: {cwt_pred_label.type()}')
-                    if use_gt_cwt and cwt_tgt is not None:
-                        cwt_emb = self.cwt_emb(cwt_tgt)
+                    if use_gt_cwt_prom and cwt_prom_tgt is not None:
+                        cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt)
                     else:
-                        cwt_emb = self.cwt_emb(cwt_pred_label)
-                enc_out = enc_out + cwt_emb
+                        cwt_prom_emb = self.cwt_emb(cwt_pred_label)
+            else:
+                cwt_prom_pred = None
+
+            if cwt_b_emb:
+                enc_out += cwt_b_emb
+            if cwt_prom_emb:
+                enc_out += cwt_prom_emb
+
         else:
-            cwt_pred = None
+            cwt_prom_pred = None
+            cwt_b_pred = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
@@ -521,11 +510,11 @@ class FastPitch(nn.Module):
         # print(f'mel_out shape: {mel_out.shape}')
         return (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred,
                 pitch_tgt, energy_pred, energy_tgt, attn_soft, attn_hard,
-                attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt, b_pred, b_tgt)  # add cwt_tgt and cwt_pred
+                attn_hard_dur, attn_logprob, cwt_prom_pred, cwt_prom_tgt, cwt_b_pred, cwt_b_tgt)
 
-    def infer(self, inputs, pace=1.0, cwt_tgt=None, dur_tgt=None, pitch_tgt=None,
+    def infer(self, inputs, pace=1.0, cwt_prom_tgt=None, cwt_b_tgt=None, dur_tgt=None, pitch_tgt=None,
               energy_tgt=None, pitch_transform=None, max_duration=75,
-              speaker=0):  # add cwt_tgt=None
+              speaker=0):
 
         if self.speaker_emb is None:
             spk_emb = 0
@@ -540,26 +529,49 @@ class FastPitch(nn.Module):
 
         # Predict cwt
         if self.cwt_conditioning:
-            if self.cwt_continuous:
-                if cwt_tgt is None:
-                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                    cwt_emb = self.cwt_emb(cwt_pred)
+            cwt_b_emb = None
+            cwt_prom_emb = None
+            if self.cwt_b_conditioning:
+                cwt_b_pred = self.cwt_b_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                m = nn.Softmax(dim=1)
+                b_pred_label = m(cwt_b_pred)
+                b_pred_label = torch.argmax(b_pred_label, dim=1)
+                if use_gt_cwt_b and cwt_b_tgt is not None:
+                    cwt_b_emb = self.cwt_b_emb(cwt_b_tgt)
                 else:
-                    cwt_tgt = cwt_tgt.unsqueeze(1)
-                    cwt_emb = self.cwt_emb(cwt_tgt)
-                enc_out = enc_out + cwt_emb.transpose(1, 2)
+                    cwt_b_emb = self.b_emb(b_pred_label)
             else:
-                if cwt_tgt is None:
-                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                    m = nn.Softmax(dim=1)
-                    cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
-                    cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
-                    cwt_emb = self.cwt_emb(cwt_pred_label)
+                cwt_b_pred = None
+
+            if self.cwt_prom_conditioning:
+                if self.cwt_prom_continuous:
+                    if cwt_prom_tgt is None:
+                        cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                        cwt_prom_emb = self.cwt_prom_emb(cwt_prom_pred)
+                    else:
+                        cwt_prom_tgt = cwt_prom_tgt.unsqueeze(1)
+                        cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt).transpose(1, 2)
                 else:
-                    cwt_emb = self.cwt_emb(cwt_tgt)
-                enc_out = enc_out + cwt_emb
+                    if cwt_prom_tgt is None:
+                        cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                        m = nn.Softmax(dim=1)
+                        cwt_pred_label = m(cwt_prom_pred)  # [16, 3, 124]
+                        cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
+                        cwt_prom_emb = self.cwt_prom_emb(cwt_pred_label)
+                    else:
+                        cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt)
+                enc_out = enc_out + cwt_prom_emb
+            else:
+                cwt_prom_pred = None
+
+            if cwt_b_emb:
+                enc_out += cwt_b_emb
+            if cwt_prom_emb:
+                enc_out += cwt_prom_emb
+
         else:
-            cwt_pred = None
+            cwt_prom_pred = None
+            cwt_b_pred = None
 
         # Predict durations
         log_dur_pred = self.duration_predictor(enc_out, enc_mask).squeeze(-1)
@@ -607,4 +619,4 @@ class FastPitch(nn.Module):
         mel_out = self.proj(dec_out)
         # mel_lens = dec_mask.squeeze(2).sum(axis=1).long()
         mel_out = mel_out.permute(0, 2, 1)  # For inference.py
-        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_pred
+        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_prom_pred, cwt_b_pred

@@ -145,23 +145,24 @@ def get_model_config(model_name, args):
             # energy conditioning
             energy_conditioning=args.energy_conditioning,
             energy_embedding_kernel_size=args.energy_embedding_kernel_size,
-            # cwt predictor
-            cwt_predictor_kernel_size=args.cwt_predictor_kernel_size,
-            cwt_predictor_filter_size=args.cwt_predictor_filter_size,
-            p_cwt_predictor_dropout=args.p_cwt_predictor_dropout,
-            cwt_predictor_n_layers=args.cwt_predictor_n_layers,
-            # cwt conditioning
+            # cwt prominence predictor
+            cwt_prom_predictor_kernel_size=args.cwt_prom_predictor_kernel_size,
+            cwt_prom_predictor_filter_size=args.cwt_prom_predictor_filter_size,
+            p_cwt_prom_predictor_dropout=args.p_cwt_prom_predictor_dropout,
+            cwt_prom_predictor_n_layers=args.cwt_prom_predictor_n_layers,
+            # cwt prominence conditioning
             cwt_conditioning=args.cwt_conditioning,
-            cwt_continuous=args.cwt_continuous, 
-            cwt_3C=args.cwt_3C,
-            cwt_embedding_kernel_size=args.cwt_embedding_kernel_size,
-            # boundary predictor
-            b_predictor_kernel_size=args.b_predictor_kernel_size,
-            b_predictor_filter_size=args.b_predictor_filter_size,
-            p_b_predictor_dropout=args.p_b_predictor_dropout,
-            b_predictor_n_layers=args.b_predictor_n_layers,
+            cwt_prom_conditioning=args.cwt_prom_conditioning,
+            cwt_prom_continuous=args.cwt_prom_continuous,
+            cwt_prom_3C=args.cwt_prom_3C,
+            cwt_prom_embedding_kernel_size=args.cwt_prom_embedding_kernel_size,
+            # cwt boundary predictor
+            cwt_b_predictor_kernel_size=args.cwt_b_predictor_kernel_size,
+            cwt_b_predictor_filter_size=args.cwt_b_predictor_filter_size,
+            p_cwt_b_predictor_dropout=args.p_cwt_b_predictor_dropout,
+            cwt_b_predictor_n_layers=args.cwt_b_predictor_n_layers,
             # boundary conditioning
-            b_conditioning=args.b_conditioning
+            cwt_b_conditioning=args.cwt_b_conditioning
         )
         return model_config
 

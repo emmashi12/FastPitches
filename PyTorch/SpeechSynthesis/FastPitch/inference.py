@@ -47,6 +47,7 @@ from common.tb_dllogger import (init_inference_metadata, stdout_metric_format,
                                 unique_log_fpath)
 from common.text import cmudict
 from common.text.text_processing import TextProcessing
+from fastpitch.data_function import upsampling_label
 from pitch_transform import pitch_transform_custom
 from waveglow import model as glow
 from waveglow.denoiser import Denoiser
@@ -124,6 +125,7 @@ def parse_args(parser):
                                  help='Type of text cleaners for input text')
     text_processing.add_argument('--symbol-set', type=str, default='english_basic',
                                  help='Define symbol set for input text')
+    # text_processing.add_argument('--get-count', )
 
     cond = parser.add_argument_group('conditioning on additional attributes')
     cond.add_argument('--n-speakers', type=int, default=1,

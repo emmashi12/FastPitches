@@ -121,28 +121,29 @@ def parse_fastpitch_args(parent, add_help=False):
                             help='Number of conv-1D layers')
 
     # -----------modified-----------
-    cwt_pred = parser.add_argument_group('cwt predictor parameters')
-    cwt_pred.add_argument('--cwt-conditioning', action='store_true')
-    cwt_pred.add_argument('--cwt-continuous', action='store_true')
-    cwt_pred.add_argument('--cwt-3C', action='store_true')
-    cwt_pred.add_argument('--cwt-predictor-kernel-size', default=3, type=int,
+    cwt_prom_pred = parser.add_argument_group('cwt prominence predictor parameters')
+    cwt_prom_pred.add_argument('--cwt-conditioning', action='store_true')
+    cwt_prom_pred.add_argument('--cwt-prom-conditioning', action='store_true')
+    cwt_prom_pred.add_argument('--cwt-prom-continuous', action='store_true')
+    cwt_prom_pred.add_argument('--cwt-prom-3C', action='store_true')
+    cwt_prom_pred.add_argument('--cwt-prom-predictor-kernel-size', default=3, type=int,
                              help='Pitch predictor conv-1D kernel size')
-    cwt_pred.add_argument('--cwt-predictor-filter-size', default=256, type=int,
+    cwt_prom_pred.add_argument('--cwt-prom-predictor-filter-size', default=256, type=int,
                              help='Pitch predictor conv-1D filter size')
-    cwt_pred.add_argument('--p-cwt-predictor-dropout', default=0.1, type=float,
+    cwt_prom_pred.add_argument('--p-cwt-prom-predictor-dropout', default=0.1, type=float,
                              help='Pitch probability for energy predictor')
-    cwt_pred.add_argument('--cwt-predictor-n-layers', default=2, type=int,
+    cwt_prom_pred.add_argument('--cwt-prom-predictor-n-layers', default=2, type=int,
                              help='Number of conv-1D layers')
 
-    b_pred = parser.add_argument_group('boundary predictor parameters')
-    b_pred.add_argument('--b-conditioning', action='store_true')
-    b_pred.add_argument('--b-predictor-kernel-size', default=3, type=int,
+    cwt_b_pred = parser.add_argument_group('cwt boundary predictor parameters')
+    cwt_b_pred.add_argument('--cwt-b-conditioning', action='store_true')
+    cwt_b_pred.add_argument('--cwt-b-predictor-kernel-size', default=3, type=int,
                           help='Pitch predictor conv-1D kernel size')
-    b_pred.add_argument('--b-predictor-filter-size', default=256, type=int,
+    cwt_b_pred.add_argument('--cwt-b-predictor-filter-size', default=256, type=int,
                           help='Pitch predictor conv-1D filter size')
-    b_pred.add_argument('--p-b-predictor-dropout', default=0.1, type=float,
+    cwt_b_pred.add_argument('--p-cwt-b-predictor-dropout', default=0.1, type=float,
                           help='Pitch probability for energy predictor')
-    b_pred.add_argument('--b-predictor-n-layers', default=2, type=int,
+    cwt_b_pred.add_argument('--cwt-b-predictor-n-layers', default=2, type=int,
                           help='Number of conv-1D layers')
 
     cond = parser.add_argument_group('conditioning parameters')
@@ -152,7 +153,7 @@ def parse_fastpitch_args(parent, add_help=False):
                       help='Pitch embedding conv-1D kernel size')
     cond.add_argument('--speaker-emb-weight', type=float, default=1.0,
                       help='Scale speaker embedding')
-    cond.add_argument('--cwt-embedding-kernel-size', default=3, type=int,
+    cond.add_argument('--cwt-prom-embedding-kernel-size', default=3, type=int,
                       help='Pitch embedding conv-1D kernel size')
 
 

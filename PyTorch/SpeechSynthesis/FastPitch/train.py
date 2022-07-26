@@ -392,11 +392,12 @@ def plot_batch_mels(pred_tgt_lists, rank):
 def log_validation_batch(x, y_pred, rank):
     x_fields = ['text_padded', 'input_lengths', 'mel_padded',
                 'output_lengths', 'pitch_padded', 'energy_padded',
-                'speaker', 'attn_prior', 'audiopaths', 'cwt_padded']
+                'speaker', 'attn_prior', 'audiopaths', 'cwt_prom_padded', 'cwt_b_padded']
     y_pred_fields = ['mel_out', 'dec_mask', 'dur_pred', 'log_dur_pred',
                      'pitch_pred', 'pitch_tgt', 'energy_pred',
                      'energy_tgt', 'attn_soft', 'attn_hard',
-                     'attn_hard_dur', 'attn_logprob', 'cwt_pred', 'cwt_tgt']
+                     'attn_hard_dur', 'attn_logprob',
+                     'cwt_prom_pred', 'cwt_prom_tgt', 'cwt_b_pred', 'cwt_b_tgt']
 
     validation_dict = dict(zip(x_fields + y_pred_fields,
                                list(x) + list(y_pred)))
@@ -407,9 +408,12 @@ def log_validation_batch(x, y_pred, rank):
     if y_pred[4] is None:
         print('no pitch')
         validation_dict.pop('pitch_pred', None)  # pop pitch ------modified-------
+    if y_pred[-4] is None:
+        print('no cwt prom')
+        validation_dict.pop('cwt_prom_pred', None)  # pop cwt ------modified-------
     if y_pred[-2] is None:
-        print('no cwt')
-        validation_dict.pop('cwt_pred', None)  # pop cwt ------modified-------
+        print('no cwt boundary')
+        validation_dict.pop('cwt_b_pred', None)  # pop cwt ------modified-------
     log(validation_dict, rank)  # something in here returns a warning
     # print('mel_out shape in validation dict:', validation_dict['mel_out'].shape)
     # print('mel_padded shape in validation dict:', validation_dict['mel_padded'].shape)
@@ -454,7 +458,7 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             # print(f'mel_out shape in y_pred: {y_pred[0].shape}')
             # print(f'mel_tgt shape in x: {x[2].shape}')
 
-            loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum', is_continuous=False)
+            loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum', is_continuous=True)
             if i % 5 == 0:
                 log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
 
@@ -483,8 +487,10 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
         loss_log['pitch-loss/validation-pitch-loss'] = val_meta['pitch_loss'].item()
     if y_pred[6] is not None:
         loss_log['energy-loss/validation-energy-loss'] = val_meta['energy_loss'].item()
+    if y_pred[-4] is not None:
+        loss_log['cwt-prom-loss/validation-cwt-prom-loss'] = val_meta['cwt_prom_loss'].item()
     if y_pred[-2] is not None:
-        loss_log['cwt-loss/validation-cwt-loss'] = val_meta['cwt_loss'].item()
+        loss_log['cwt-b-loss/validation-cwt-b-loss'] = val_meta['cwt_b_loss'].item()
 
     log(loss_log, rank)
 
@@ -641,7 +647,8 @@ def main():
         dur_predictor_loss_scale=args.dur_predictor_loss_scale,
         pitch_predictor_loss_scale=args.pitch_predictor_loss_scale,
         attn_loss_scale=args.attn_loss_scale,
-        cwt_predictor_loss_scale=args.cwt_predictor_loss_scale,
+        cwt_prom_predictor_loss_scale=args.cwt_prom_predictor_loss_scale,
+        cwt_b_predictor_loss_scale=args.cwt_b_predictor_loss_scale,
         energy_predictor_loss_scale=args.energy_predictor_loss_scale)  # ----modified----
 
     collate_fn = TTSCollate()
@@ -680,7 +687,8 @@ def main():
         epoch_pitch_loss = 0.0
         epoch_energy_loss = 0.0
         epoch_dur_loss = 0.0
-        epoch_cwt_loss = 0.0  # ----modified----
+        epoch_cwt_prom_loss = 0.0  # ----modified----
+        epoch_cwt_b_loss = 0.0
         epoch_num_frames = 0
         epoch_frames_per_sec = 0.0
 
@@ -713,7 +721,7 @@ def main():
             with torch.cuda.amp.autocast(enabled=args.amp):
                 print("start training")
                 y_pred = model(x) #forward pass starts (calling the model)
-                loss, meta = criterion(y_pred, y, is_continuous=False)  # -----modified-----
+                loss, meta = criterion(y_pred, y, is_continuous=True)  # -----modified-----
 
                 if (args.kl_loss_start_epoch is not None
                         and epoch >= args.kl_loss_start_epoch):
@@ -721,7 +729,7 @@ def main():
                     if args.kl_loss_start_epoch == epoch and epoch_iter == 1:
                         print('Begin hard_attn loss')
 
-                    _, _, _, _, pitch_pred, _, energy_pred, _, attn_soft, attn_hard, _, _, cwt_pred, _ = y_pred
+                    _, _, _, _, pitch_pred, _, energy_pred, _, attn_soft, attn_hard, _, _, cwt_prom_pred, _, cwt_b_pred, _ = y_pred
                     binarization_loss = attention_kl_loss(attn_hard, attn_soft)
                     kl_weight = min((epoch - args.kl_loss_start_epoch) / args.kl_loss_warmup_epochs, 1.0) * args.kl_loss_weight
                     meta['kl_loss'] = binarization_loss.clone().detach() * kl_weight
@@ -785,9 +793,12 @@ def main():
                     epoch_energy_loss += iter_energy_loss
                 # no key 'energy_loss' when energy conditioning is False
                 iter_dur_loss = iter_meta['duration_predictor_loss'].item()
-                if cwt_pred is not None:
-                    iter_cwt_loss = iter_meta['cwt_loss'].item()  # ---------modified--------
-                    epoch_cwt_loss += iter_cwt_loss  # ---------modified--------
+                if cwt_prom_pred is not None:
+                    iter_cwt_prom_loss = iter_meta['cwt_prom_loss'].item()  # ---------modified--------
+                    epoch_cwt_prom_loss += iter_cwt_prom_loss  # ---------modified--------
+                if cwt_b_pred is not None:
+                    iter_cwt_b_loss = iter_meta['cwt_b_loss'].item()
+                    epoch_cwt_b_loss += iter_cwt_b_loss
                 iter_time = time.perf_counter() - iter_start_time
                 epoch_frames_per_sec += iter_num_frames / iter_time
                 epoch_loss += iter_loss
@@ -814,8 +825,10 @@ def main():
                         iter_loss['pitch-loss/pitch_loss'] = iter_pitch_loss
                     if energy_pred is not None:
                         iter_loss['energy-loss/energy_loss'] = iter_energy_loss
-                    if cwt_pred is not None:
-                        iter_loss['cwt-loss/cwt_loss'] = iter_cwt_loss
+                    if cwt_prom_pred is not None:
+                        iter_loss['cwt-prom-loss/cwt_prom_loss'] = iter_cwt_prom_loss
+                    if cwt_b_pred is not None:
+                        iter_loss['cwt-b-loss/cwt_b_loss'] = iter_cwt_b_loss
                     log(iter_loss, args.local_rank)
 
                 accumulated_steps = 0
@@ -843,8 +856,10 @@ def main():
             log_epoch_loss['pitch-loss/epoch_pitch_loss'] = epoch_pitch_loss
         if energy_pred is not None:
             log_epoch_loss['energy-loss/epoch_energy_loss'] = epoch_energy_loss
-        if cwt_pred is not None:
-            log_epoch_loss['cwt-loss/epoch_cwt_loss'] = epoch_cwt_loss
+        if cwt_prom_pred is not None:
+            log_epoch_loss['cwt-prom-loss/epoch_cwt_prom_loss'] = epoch_cwt_prom_loss
+        if cwt_b_pred is not None:
+            log_epoch_loss['cwt-b-loss/epoch_cwt_b_loss'] = epoch_cwt_b_loss
         log(log_epoch_loss, args.local_rank)
         bmark_stats.update(epoch_num_frames, epoch_loss, epoch_mel_loss,
                            epoch_time)
