@@ -360,10 +360,10 @@ class FastPitch(nn.Module):
                              out_lens.cpu().numpy(), width=1)
         return torch.from_numpy(attn_out).to(attn.get_device())
 
-    def forward(self, inputs, use_gt_pitch=True, use_gt_cwt=True, pace=1.0, max_duration=75):
+    def forward(self, inputs, use_gt_pitch=True, use_gt_cwt=True, use_gt_b=True, pace=1.0, max_duration=75):
 
         (inputs, input_lens, mel_tgt, mel_lens, pitch_dense, energy_dense,
-         speaker, attn_prior, audiopaths, cwt_tgt) = inputs  # --------modified-------- b_tgt
+         speaker, attn_prior, audiopaths, cwt_tgt, b_tgt) = inputs  # --------modified-------- b_tgt
         # add use_gt_b=True to input
         # inputs: [16, 140] [batch_size, text_len]
         # mel_tgt: [batch_size, mel-channel, mel_len]
@@ -413,40 +413,41 @@ class FastPitch(nn.Module):
 
         # Predict prominence and boundary in parallel -------------modified--------------
         if self.cwt_conditioning:
-            # if self.b_conditioning:
-            #     b_pred = self.b_predictor(enc_out, enc_mask).permute(0, 2, 1)
-            #     m = nn.Softmax(dim=1)
-            #     b_pred_label = m(b_pred)
-            #     b_pred_label = torch.argmax(b_pred_label, dim=1)
-            #     if use_gt_b and b_tgt is not None:
-            #         b_emb = self.b_emb(b_tgt)
-            #     else:
-            #         b_emb = self.b_emb(b_pred_label)
-
-            if self.cwt_continuous:
-                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                # cwt_pred.shape: [batch_size, 1, text_len], when predicting continuous number
-                if use_gt_cwt and cwt_tgt is not None:
-                    cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
-                    cwt_emb = self.cwt_emb(cwt_tgt)
-                else:
-                    cwt_emb = self.cwt_emb(cwt_pred)
-                enc_out = enc_out + cwt_emb.transpose(1, 2)
-            else:
-                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                # print(f'cwt_pred before softmax: {cwt_pred}')
+            if self.b_conditioning:
+                b_pred = self.b_predictor(enc_out, enc_mask).permute(0, 2, 1)
                 m = nn.Softmax(dim=1)
-                cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
-                # print(f'cwt_pred after softmax: {cwt_pred_label}')
-                cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
-                # print(f'cwt_pred after argmax: {cwt_pred_label}')
-                # print(f'cwt_pred type: {cwt_pred_label.type()}')
-                if use_gt_cwt and cwt_tgt is not None:
-                    cwt_emb = self.cwt_emb(cwt_tgt)
+                b_pred_label = m(b_pred)
+                b_pred_label = torch.argmax(b_pred_label, dim=1)
+                if use_gt_b and b_tgt is not None:
+                    b_emb = self.b_emb(b_tgt)
                 else:
-                    cwt_emb = self.cwt_emb(cwt_pred_label)
-                enc_out = enc_out + cwt_emb
-            # else:
+                    b_emb = self.b_emb(b_pred_label)
+
+                if self.cwt_continuous:
+                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                    # cwt_pred.shape: [batch_size, 1, text_len], when predicting continuous number
+                    if use_gt_cwt and cwt_tgt is not None:
+                        cwt_tgt = cwt_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
+                        cwt_emb = self.cwt_emb(cwt_tgt)
+                    else:
+                        cwt_emb = self.cwt_emb(cwt_pred)
+                        cwt_emb = cwt_emb.transpose(1, 2)
+                else:
+                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                    # print(f'cwt_pred before softmax: {cwt_pred}')
+                    m = nn.Softmax(dim=1)
+                    cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
+                    # print(f'cwt_pred after softmax: {cwt_pred_label}')
+                    cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
+                    # print(f'cwt_pred after argmax: {cwt_pred_label}')
+                    # print(f'cwt_pred type: {cwt_pred_label.type()}')
+                    if use_gt_cwt and cwt_tgt is not None:
+                        cwt_emb = self.cwt_emb(cwt_tgt)
+                    else:
+                        cwt_emb = self.cwt_emb(cwt_pred_label)
+                enc_out = enc_out + b_emb + cwt_emb
+            else:
+                b_pred = None
         else:
             cwt_pred = None
 
@@ -497,7 +498,7 @@ class FastPitch(nn.Module):
         # print(f'mel_out shape: {mel_out.shape}')
         return (mel_out, dec_mask, dur_pred, log_dur_pred, pitch_pred,
                 pitch_tgt, energy_pred, energy_tgt, attn_soft, attn_hard,
-                attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt)  # add cwt_tgt and cwt_pred
+                attn_hard_dur, attn_logprob, cwt_pred, cwt_tgt, b_pred, b_tgt)  # add cwt_tgt and cwt_pred
 
     def infer(self, inputs, pace=1.0, cwt_tgt=None, dur_tgt=None, pitch_tgt=None,
               energy_tgt=None, pitch_transform=None, max_duration=75,

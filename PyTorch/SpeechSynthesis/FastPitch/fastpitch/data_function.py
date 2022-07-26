@@ -144,9 +144,9 @@ class TTSDataset(torch.utils.data.Dataset):
                  load_mel_from_disk=True,
                  load_pitch_from_disk=True,
                  load_cwt_from_disk=True,
-                 # load_b_from_disk=True,
+                 load_b_from_disk=True,
                  cwt_label=True,
-                 # b_label=True,
+                 b_label=True,
                  pitch_mean=214.72203,  # LJSpeech defaults
                  pitch_std=65.72038,
                  max_wav_value=None,
@@ -185,8 +185,8 @@ class TTSDataset(torch.utils.data.Dataset):
         self.load_cwt_from_disk = load_cwt_from_disk
         self.cwt_label = cwt_label
 
-        # self.load_b_from_disk = load_b_from_disk  # for boundary labels
-        # self.b_label = b_label
+        self.load_b_from_disk = load_b_from_disk  # for boundary labels
+        self.b_label = b_label
 
         self.prepend_space_to_text = prepend_space_to_text
         self.append_space_to_text = append_space_to_text
@@ -257,10 +257,10 @@ class TTSDataset(torch.utils.data.Dataset):
             cwt_tensor = None
         # text_len = text.shape[0]     mel_len = mel.shape[1]
 
-        # if self.b_label is True:
-        #     b_tensor = self.get_b_label(index, text_info)
-        # else:
-        #     b_tensor = None
+        if self.b_label is True:
+            b_tensor = self.get_b_label(index, text_info)
+        else:
+            b_tensor = None
 
         assert pitch.size(-1) == mel.size(-1)
         # sanity check for number of pitch values and number of frames
@@ -270,7 +270,7 @@ class TTSDataset(torch.utils.data.Dataset):
             pitch = pitch[None, :]
 
         return (text, mel, len(text), pitch, energy, speaker, attn_prior,
-                audiopath, cwt_tensor)  # ----------modify-----------add b_tensor
+                audiopath, cwt_tensor, b_tensor)  # ----------modify-----------
 
     def __len__(self):
         return len(self.audiopaths_and_text)
@@ -416,37 +416,37 @@ class TTSDataset(torch.utils.data.Dataset):
 
             return cwt_tensor
 
-    # def get_b_label(self, index, text_info):
-    #     if self.load_b_from_disk:
-    #         bpath = self.audiopaths_and_text[index]['boundary']
-    #         bpath = self.dataset_path + '/' + bpath
-    #         b = torch.load(bpath)
-    #         b_list = b.tolist()
-    #         # print(f'text info: {text_info}')
-    # 
-    #         text_symbols = [x[1] for x in text_info]
-    #         text_words = [x[0] for x in text_info]
-    #         total_symbols = sum(text_symbols)
-    # 
-    #         upsampled = []
-    #         words = re.compile('\w+')  # match for words
-    #         b_index = 0
-    # 
-    #         for c in range(len(text_words)):
-    #             if words.search(text_words[c]):  # upsample cwt label
-    #                 t = [b_list[b_index]] * text_symbols[c]
-    #                 upsampled += t
-    #                 b_index += 1
-    #             else:
-    #                 t = [0.0] * text_symbols[c]  # add cwt label for non-words
-    #                 upsampled += t
-    # 
-    #         # print(upsampled)
-    #         # print(len(upsampled))
-    #         b_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
-    #         assert list(b_tensor.size())[0] == total_symbols
-    # 
-    #         return b_tensor
+    def get_b_label(self, index, text_info):
+        if self.load_b_from_disk:
+            bpath = self.audiopaths_and_text[index]['boundary']
+            bpath = self.dataset_path + '/' + bpath
+            b = torch.load(bpath)
+            b_list = b.tolist()
+            # print(f'text info: {text_info}')
+
+            text_symbols = [x[1] for x in text_info]
+            text_words = [x[0] for x in text_info]
+            total_symbols = sum(text_symbols)
+
+            upsampled = []
+            words = re.compile('\w+')  # match for words
+            b_index = 0
+
+            for c in range(len(text_words)):
+                if words.search(text_words[c]):  # upsample cwt label
+                    t = [b_list[b_index]] * text_symbols[c]
+                    upsampled += t
+                    b_index += 1
+                else:
+                    t = [0.0] * text_symbols[c]  # add cwt label for non-words
+                    upsampled += t
+
+            # print(upsampled)
+            # print(len(upsampled))
+            b_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
+            assert list(b_tensor.size())[0] == total_symbols
+
+            return b_tensor
 
 
 class TTSCollate:
@@ -469,8 +469,6 @@ class TTSCollate:
             text_padded[i, :text.size(0)] = text
 
         # padding for prominence label tensor -------------modified---------------
-        # num_cwt = batch[0][8].size(0)
-        # print(f'num_cwt: {num_cwt}')
         if batch[0][8] is not None:
             # cwt_padded = torch.FloatTensor(len(batch), max_input_len)  # for continuous label
             cwt_padded = torch.LongTensor(len(batch), max_input_len)  # for categorical label
@@ -482,14 +480,14 @@ class TTSCollate:
         else:
             cwt_padded = None
 
-        # if batch[0][9] is not None:  # padding for boundary labels
-        #     b_padded = torch.LongTensor(len(batch), max_input_len)  # for categorical label
-        #     b_padded.zero_()
-        #     for i in range(len(ids_sorted_decreasing)):
-        #         b = batch[ids_sorted_decreasing[i]][9]
-        #         b_padded[i, :b.shape[0]] = b
-        # else:
-        #     b_padded = None
+        if batch[0][9] is not None:  # padding for boundary labels
+            b_padded = torch.LongTensor(len(batch), max_input_len)  # for categorical label
+            b_padded.zero_()
+            for i in range(len(ids_sorted_decreasing)):
+                b = batch[ids_sorted_decreasing[i]][9]
+                b_padded[i, :b.shape[0]] = b
+        else:
+            b_padded = None
 
         # Right zero-pad mel-spec
         num_mels = batch[0][1].size(0)
@@ -537,12 +535,12 @@ class TTSCollate:
 
         return (text_padded, input_lengths, mel_padded, output_lengths, len_x,
                 pitch_padded, energy_padded, speaker, attn_prior_padded,
-                audiopaths, cwt_padded)  # ---------modified------------ b_padded
+                audiopaths, cwt_padded, b_padded)  # ---------modified------------
 
 
 def batch_to_gpu(batch):
     (text_padded, input_lengths, mel_padded, output_lengths, len_x,
-     pitch_padded, energy_padded, speaker, attn_prior, audiopaths, cwt_padded) = batch
+     pitch_padded, energy_padded, speaker, attn_prior, audiopaths, cwt_padded, b_padded) = batch
     # --------modified---------
     # _, input_lens, mels, mel_lens, _, pitch, _, _, attn_prior, fpaths, cwt = batch
 
@@ -555,13 +553,13 @@ def batch_to_gpu(batch):
     attn_prior = to_gpu(attn_prior).float()
     # cwt_padded = to_gpu(cwt_padded).float()  # for continuous
     cwt_padded = to_gpu(cwt_padded).long()  # for categorical
-    # b_padded = to_gpu(b_padded).long()  # for categorical
+    b_padded = to_gpu(b_padded).long()  # for categorical
     if speaker is not None:
         speaker = to_gpu(speaker).long()
 
     # Alignments act as both inputs and targets - pass shallow copies
     x = [text_padded, input_lengths, mel_padded, output_lengths,
-         pitch_padded, energy_padded, speaker, attn_prior, audiopaths, cwt_padded]  # b_padded
-    y = [mel_padded, input_lengths, output_lengths, cwt_padded]  # something we predict in the model (b_padded)
+         pitch_padded, energy_padded, speaker, attn_prior, audiopaths, cwt_padded, b_padded]
+    y = [mel_padded, input_lengths, output_lengths, cwt_padded, b_padded]  # something we predict in the model
     len_x = torch.sum(output_lengths)
     return (x, y, len_x)

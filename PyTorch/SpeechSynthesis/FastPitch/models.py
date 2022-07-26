@@ -154,7 +154,14 @@ def get_model_config(model_name, args):
             cwt_conditioning=args.cwt_conditioning,
             cwt_continuous=args.cwt_continuous, 
             cwt_3C=args.cwt_3C,
-            cwt_embedding_kernel_size=args.cwt_embedding_kernel_size
+            cwt_embedding_kernel_size=args.cwt_embedding_kernel_size,
+            # boundary predictor
+            b_predictor_kernel_size=args.b_predictor_kernel_size,
+            b_predictor_filter_size=args.b_predictor_filter_size,
+            p_b_predictor_dropout=args.p_b_predictor_dropout,
+            b_predictor_n_layers=args.b_predictor_n_layers,
+            # boundary conditioning
+            b_conditioning=args.b_conditioning
         )
         return model_config
 

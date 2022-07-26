@@ -30,6 +30,8 @@ export OMP_NUM_THREADS=1
 : ${CWT:=false}
 : ${CWT_CON:=false}
 : ${CWT_3C:=false}
+# Enable boundary conditioning
+: ${BOUNDARY:=false}
 : ${TEXT_CLEANERS:=english_cleaners_v2}
 # Add dummy space prefix/suffix is audio is not precisely trimmed
 : ${APPEND_SPACES:=false}
@@ -37,6 +39,7 @@ export OMP_NUM_THREADS=1
 : ${LOAD_PITCH_FROM_DISK:=true}
 : ${LOAD_MEL_FROM_DISK:=false}
 : ${LOAD_CWT_FROM_DISK:=true}
+: ${LOAD_B_FROM_DISK:=true}
 
 # For multispeaker models, add speaker ID = {0, 1, ...} as the last filelist column
 : ${NSPEAKERS:=1}
@@ -83,10 +86,12 @@ ARGS+=" --n-speakers $NSPEAKERS"
 [ "$CWT" = "true" ]                && ARGS+=" --cwt-conditioning"
 [ "$CWT_CON" = "true" ]            && ARGS+=" --cwt-continuous"
 [ "$CWT_3C" = "true" ]             && ARGS+=" --cwt-3C"
+[ "$BOUNDARY" = "true" ]           && ARGS+=" --b-conditioning"
 [ "$SEED" != "" ]                  && ARGS+=" --seed $SEED"
 [ "$LOAD_MEL_FROM_DISK" = true ]   && ARGS+=" --load-mel-from-disk"
 [ "$LOAD_PITCH_FROM_DISK" = true ] && ARGS+=" --load-pitch-from-disk"
 [ "$LOAD_CWT_FROM_DISK" = true ]   && ARGS+=" --load-cwt-from-disk"
+[ "$LOAD_B_FROM_DISK" = true ]     && ARGS+=" --load-b-from-disk"
 [ "$PITCH_ONLINE_DIR" != "" ]      && ARGS+=" --pitch-online-dir $PITCH_ONLINE_DIR"  # e.g., /dev/shm/pitch
 [ "$PITCH_ONLINE_METHOD" != "" ]   && ARGS+=" --pitch-online-method $PITCH_ONLINE_METHOD"
 [ "$APPEND_SPACES" = true ]        && ARGS+=" --prepend-space-to-text"

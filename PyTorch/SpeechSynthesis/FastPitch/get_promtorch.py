@@ -11,16 +11,16 @@ def get_cwt_tensor(file, outpath):
     # print(tst.dtypes)
     # prom = tst['p_label'].to_list()
     # print("prom label list", prom)
-    p_tensor = torch.LongTensor(tst['p_label'].values)
-    print("prom label tensor", p_tensor)
-    torch.save(p_tensor, fpath)
+    b_tensor = torch.LongTensor(tst['b_label'].values)
+    print("boundary label tensor", b_tensor)
+    torch.save(b_tensor, fpath)
 
 
 in_filepath = '/Users/emmashi/Desktop/labelled_file_3C'
 os.chdir(in_filepath)
 head, tail = os.path.split(in_filepath)
 
-out_filepath = head + '/cwt_cat_3C/'
+out_filepath = head + '/boundary/'
 os.makedirs(out_filepath, exist_ok=True)
 
 for file in glob.glob("*.prom"):

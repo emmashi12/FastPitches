@@ -11,12 +11,12 @@ def load_file(in_file=None):
 
 
 def get_boundary_label(value):
-    if value <= 0.5:
-        return "b0"
-    elif value > 1:
-        return "b2"
+    if value < 0.6:
+        return 1
+    elif value >= 1:
+        return 3
     else:
-        return "b1"
+        return 2
 
 
 def get_prominence_label(value, data):
@@ -50,7 +50,7 @@ os.makedirs(out_filepath, exist_ok=True)
 
 for file in glob.glob('*.prom'):
     data, prom = load_file(file)
-    # data['b_label'] = data.apply(lambda x: get_boundary_label(x.b_strength), axis=1)
+    data['b_label'] = data.apply(lambda x: get_boundary_label(x.b_strength), axis=1)
     data['p_label'] = data.apply(lambda x: get_prominence_label_3C(x.p_strength), axis=1)
     #print(data)
     #print(out_filepath + file)

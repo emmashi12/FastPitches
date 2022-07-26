@@ -22,21 +22,22 @@ def extract_text(infile="ljs_audio_text.txt", outfile=None):
                     f.write('{}'.format(text))
 
 
-def add_column(infile="ljs_audio_pitch_text_test.txt", outfile=None):
+def add_column(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_test_con.txt", outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     with open(infile) as file:
         for l in file:
-            matchline = re.match('(.*)\/(.*)\.wav\|(.*)\|(.*)', l)
+            matchline = re.match('(.*)\/(.*)\.wav\|(.*)\|(.*)\|(.*)', l)
             outname = matchline.group(2)
             pitchpath = matchline.group(3)
-            text = matchline.group(4)
+            cwtpath = matchline.group(4)
+            text = matchline.group(5)
             wavpath = matchline.group(1) + '/' + outname + '.wav'
-            cwtpath = 'cwt_con/' + outname + '.pt'
-            rewrite = wavpath + '|' + pitchpath + '|' + cwtpath + '|' + text
+            b_path = 'boundary/' + outname + '.pt'
+            rewrite = wavpath + '|' + pitchpath + '|' + cwtpath + '|' + b_path + '|' + text
             #print(rewrite)
             if outfile:
                 os.chdir(out_filepath)
-                with open("ljs_audio_pitch_prom_text_test.txt", 'a') as f:
+                with open("ljs_audio_pitch_prom_b_text_test_con.txt", 'a') as f:
                     f.write('{}\n'.format(rewrite))
 
 
@@ -79,6 +80,6 @@ def extract_infer_text(infile="/Users/emmashi/Desktop/test_infer.txt", outfile=N
 
 
 # extract_text(outfile=True)
-# add_column(outfile=True)
-remove_wav(outfile=True)
+add_column(outfile=True)
+# remove_wav(outfile=True)
 # extract_infer_text(outfile=True)
