@@ -542,7 +542,7 @@ class TTSCollate:
 
 def batch_to_gpu(batch):
     (text_padded, input_lengths, mel_padded, output_lengths, len_x,
-     pitch_padded, energy_padded, speaker, attn_prior, audiopaths, cwt_padded, b_padded) = batch
+     pitch_padded, energy_padded, speaker, attn_prior, audiopaths, cwt_padded) = batch
     # --------modified---------
     # _, input_lens, mels, mel_lens, _, pitch, _, _, attn_prior, fpaths, cwt = batch
 
