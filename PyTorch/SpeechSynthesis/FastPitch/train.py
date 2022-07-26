@@ -120,8 +120,10 @@ def parse_args(parser):
                      default=1.0, help='Rescale alignment loss')
     opt.add_argument('--energy-predictor-loss-scale', type=float,
                      default=1.0, help='Rescale energy predictor loss')  # -------modified--------
-    opt.add_argument('--cwt-predictor-loss-scale', type=float,
-                     default=1.0, help='Rescale cwt predictor loss')  # -------modified--------
+    opt.add_argument('--cwt-prom-predictor-loss-scale', type=float,
+                     default=1.0, help='Rescale cwt prominence predictor loss')  # -------modified--------
+    opt.add_argument('--cwt-b-predictor-loss-scale', type=float,
+                     default=1.0, help='Rescale cwt boundary predictor loss')
 
     data = parser.add_argument_group('dataset parameters')
     data.add_argument('--training-files', type=str, nargs='*', required=True,
@@ -162,8 +164,10 @@ def parse_args(parser):
                       help='Normalization value for pitch')
     cond.add_argument('--load-mel-from-disk', action='store_true',
                       help='Use mel-spectrograms cache on the disk')  # XXX
-    cond.add_argument('--load-cwt-from-disk', action='store_true',
-                      help='Use cwt cache on the disk')  # ------modified---------
+    cond.add_argument('--load-cwt-prom-from-disk', action='store_true',
+                      help='Use cwt prominence cache on the disk')  # ------modified---------
+    cond.add_argument('--load-cwt-b-from-disk', action='store_true',
+                      help='Use cwt boundary cache on the disk')
 
     audio = parser.add_argument_group('audio parameters')
     audio.add_argument('--max-wav-value', default=32768.0, type=float,
