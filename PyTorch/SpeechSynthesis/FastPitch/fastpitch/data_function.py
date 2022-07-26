@@ -166,7 +166,7 @@ class TTSDataset(torch.utils.data.Dataset):
                  load_cwt_prom_from_disk=True,
                  load_cwt_b_from_disk=True,
                  cwt_label=True,
-                 b_label=False,
+                 b_label=True,
                  pitch_mean=214.72203,  # LJSpeech defaults
                  pitch_std=65.72038,
                  max_wav_value=None,
