@@ -137,7 +137,7 @@ def upsampling_label(tensor_list, text_info):
 
     for c in range(len(text_words)):
         if words.search(text_words[c]):
-            t = [tensor_list[cwt_index]] * text_symbols[c]  # upsample label
+            t = [tensor_list[tensor_index]] * text_symbols[c]  # upsample label
             upsampled += t
             tensor_index += 1
         else:
