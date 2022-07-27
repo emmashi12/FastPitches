@@ -144,7 +144,7 @@ def main():
         for i, batch in enumerate(tqdm.tqdm(data_loader)):
             tik = time.time()
 
-            _, input_lens, mels, mel_lens, _, pitch, _, _, attn_prior, fpaths, cwt = batch
+            _, input_lens, mels, mel_lens, _, pitch, _, _, attn_prior, fpaths, cwt_prom, cwt_b = batch
             # input_lens is the original length of input character
             # Ensure filenames are unique
             for p in fpaths:
