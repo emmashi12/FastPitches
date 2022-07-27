@@ -200,7 +200,8 @@ def load_fields(fpath):
 
 def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                            batch_size=128, dataset=None, load_mels=False,
-                           load_pitch=False, p_arpabet=0.0, get_count=True):  #p_arpabet=1.0
+                           load_pitch=False,
+                           p_arpabet=0.0, get_count=True):  #p_arpabet=1.0, load_cwt_prom=False, load_cwt_b=False,
     tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=get_count)
 
     # fields['text'] = [torch.LongTensor(tp.encode_text(text))
@@ -231,6 +232,15 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
         fields['pitch'] = [
             torch.load(Path(dataset, fields['pitch'][i])) for i in order]
         fields['pitch_lens'] = torch.LongTensor([t.size(0) for t in fields['pitch']])
+
+    # if load_cwt_prom:
+    #     assert 'prom' in fields
+    #     fields['prom'] = []
+    #     for i in order:
+    #
+    #
+    # if load_cwt_b:
+    #     assert 'boundary' in fields
 
     if 'output' in fields:
         fields['output'] = [fields['output'][i] for i in order]
@@ -351,7 +361,7 @@ def main():
     fields = load_fields(args.input)
     batches = prepare_input_sequence(
         fields, device, args.symbol_set, args.text_cleaners, args.batch_size,
-        args.dataset_path, load_mels=(generator is None), p_arpabet=args.p_arpabet)
+        args.dataset_path, load_mels=(generator is None), p_arpabet=args.p_arpabet, get_count=args.get_count)
 
     # Use real data rather than synthetic - FastPitch predicts len
     for _ in tqdm(range(args.warmup_steps), 'Warmup'):

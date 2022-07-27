@@ -9,8 +9,13 @@
 : ${AMP:=false}
 : ${TORCHSCRIPT:=false}
 : ${PHONE:=true}
-: ${PITCH:=true}
-: ${ENERGY:=true}
+: ${PITCH:=false}
+: ${ENERGY:=false}
+: ${CWT:=false}
+: ${CWT_PROM:=false}
+: ${CWT_PROM_CON:=false}
+: ${CWT_PROM_3C:=false}
+: ${BOUNDARY:=false}
 : ${GET_COUNT:=true}
 : ${DENOISING:=0.01}
 : ${WARMUP:=0}
@@ -35,14 +40,19 @@ ARGS+=" --repeats $REPEATS"
 ARGS+=" --warmup-steps $WARMUP"
 ARGS+=" --speaker $SPEAKER"
 ARGS+=" --n-speakers $NUM_SPEAKERS"
-[ "$CPU" = false ]          && ARGS+=" --cuda"
-[ "$CPU" = false ]          && ARGS+=" --cudnn-benchmark"
-[ "$AMP" = true ]           && ARGS+=" --amp"
-[ "$PHONE" = "true" ]       && ARGS+=" --p-arpabet 1.0"
-[ "$PITCH" = "true" ]       && ARGS+=" --pitch-conditioning"
-[ "$ENERGY" = "true" ]      && ARGS+=" --energy-conditioning"
-[ "$GET_COUNT" = "true" ]   && ARGS+=" --get-count"
-[ "$TORCHSCRIPT" = "true" ] && ARGS+=" --torchscript"
+[ "$CPU" = false ]            && ARGS+=" --cuda"
+[ "$CPU" = false ]            && ARGS+=" --cudnn-benchmark"
+[ "$AMP" = true ]             && ARGS+=" --amp"
+[ "$PHONE" = "true" ]         && ARGS+=" --p-arpabet 1.0"
+[ "$PITCH" = "true" ]         && ARGS+=" --pitch-conditioning"
+[ "$ENERGY" = "true" ]        && ARGS+=" --energy-conditioning"
+[ "$CWT" = "true" ]           && ARGS+=" --cwt-conditioning"
+[ "$CWT_PROM" = "true" ]      && ARGS+=" --cwt-prom-conditioning"
+[ "$CWT_PROM_CON" = "true" ]  && ARGS+=" --cwt-prom-continuous"
+[ "$CWT_PROM_3C" = "true" ]   && ARGS+=" --cwt-prom-3C"
+[ "$BOUNDARY" = "true" ]      && ARGS+=" --cwt-b-conditioning"
+[ "$GET_COUNT" = "true" ]     && ARGS+=" --get-count"
+[ "$TORCHSCRIPT" = "true" ]   && ARGS+=" --torchscript"
 
 mkdir -p "$OUTPUT_DIR"
 
