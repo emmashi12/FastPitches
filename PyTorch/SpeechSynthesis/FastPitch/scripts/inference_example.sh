@@ -9,6 +9,7 @@
 : ${AMP:=false}
 : ${TORCHSCRIPT:=false}
 : ${PHONE:=true}
+: ${PITCH:=true}
 : ${ENERGY:=true}
 : ${DENOISING:=0.01}
 : ${WARMUP:=0}
@@ -37,6 +38,7 @@ ARGS+=" --n-speakers $NUM_SPEAKERS"
 [ "$CPU" = false ]          && ARGS+=" --cudnn-benchmark"
 [ "$AMP" = true ]           && ARGS+=" --amp"
 [ "$PHONE" = "true" ]       && ARGS+=" --p-arpabet 1.0"
+[ "$PITCH" = "true" ]       && ARGS+=" --pitch-conditioning"
 [ "$ENERGY" = "true" ]      && ARGS+=" --energy-conditioning"
 [ "$TORCHSCRIPT" = "true" ] && ARGS+=" --torchscript"
 
