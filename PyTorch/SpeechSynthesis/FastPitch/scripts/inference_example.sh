@@ -11,6 +11,7 @@
 : ${PHONE:=true}
 : ${PITCH:=true}
 : ${ENERGY:=true}
+: ${GET_COUNT:=true}
 : ${DENOISING:=0.01}
 : ${WARMUP:=0}
 : ${REPEATS:=1}
@@ -40,6 +41,7 @@ ARGS+=" --n-speakers $NUM_SPEAKERS"
 [ "$PHONE" = "true" ]       && ARGS+=" --p-arpabet 1.0"
 [ "$PITCH" = "true" ]       && ARGS+=" --pitch-conditioning"
 [ "$ENERGY" = "true" ]      && ARGS+=" --energy-conditioning"
+[ "$GET_COUNT" = "true" ]   && ARGS+=" --get-count"
 [ "$TORCHSCRIPT" = "true" ] && ARGS+=" --torchscript"
 
 mkdir -p "$OUTPUT_DIR"
