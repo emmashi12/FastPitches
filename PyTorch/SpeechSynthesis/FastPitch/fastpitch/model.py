@@ -437,7 +437,7 @@ class FastPitch(nn.Module):
                         cwt_prom_tgt = cwt_prom_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt).transpose(1, 2)
                         print(f'cwt_prom_emb type: {cwt_prom_emb.type()}')
-                        print(f'cwt_prom_emb shape: {cwt_prom_emb.shape()}')
+                        print(f'cwt_prom_emb shape: {cwt_prom_emb.shape}')
                     else:
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_pred)
                         cwt_prom_emb = cwt_prom_emb.transpose(1, 2)
