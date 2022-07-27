@@ -457,9 +457,9 @@ class FastPitch(nn.Module):
             else:
                 cwt_prom_pred = None
 
-            if cwt_b_emb:
+            if torch.is_tensor(cwt_b_emb):
                 enc_out += cwt_b_emb
-            if cwt_prom_emb:
+            if torch.is_tensor(cwt_prom_emb):
                 enc_out += cwt_prom_emb
 
         else:
