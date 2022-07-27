@@ -200,9 +200,9 @@ class TextProcessing(object):
                     self.handle_arpabet))
 
         text_encoded = self.text_to_sequence(text)
-        print(f'Text encoded: {text_encoded}')
-        print(len(text_encoded))
-        print(type(text_encoded))
+        # print(f'Text encoded: {text_encoded}')
+        # print(len(text_encoded))
+        # print(type(text_encoded))
         if return_all:
             return text_encoded, text_clean, text_arpabet
 
