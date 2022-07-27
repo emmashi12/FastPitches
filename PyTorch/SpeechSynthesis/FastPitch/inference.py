@@ -125,7 +125,8 @@ def parse_args(parser):
                                  help='Type of text cleaners for input text')
     text_processing.add_argument('--symbol-set', type=str, default='english_basic',
                                  help='Define symbol set for input text')
-    # text_processing.add_argument('--get-count', )
+    text_processing.add_argument('--get-count', action='store_true',
+                                 help='Get info for upsampling cwt labels')
 
     cond = parser.add_argument_group('conditioning on additional attributes')
     cond.add_argument('--n-speakers', type=int, default=1,
@@ -200,10 +201,17 @@ def load_fields(fpath):
 def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                            batch_size=128, dataset=None, load_mels=False,
                            load_pitch=False, p_arpabet=0.0):  #p_arpabet=1.0
-    tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet)
+    tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=True)
 
-    fields['text'] = [torch.LongTensor(tp.encode_text(text))
-                      for text in fields['text']]
+    # fields['text'] = [torch.LongTensor(tp.encode_text(text))
+    #                   for text in fields['text']]
+    fields['text2'] = []
+    fields['text_info'] = []
+    for text in fields['text']:
+        fields['text2'].append(torch.LongTensor(tp.encode_text(text)[0]))
+        fields['text_info'].append(tp.encode_text(text)[1])
+        fields['text'] = fields['text2']
+
     order = np.argsort([-t.size(0) for t in fields['text']])
 
     fields['text'] = [fields['text'][i] for i in order]

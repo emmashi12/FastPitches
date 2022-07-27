@@ -22,22 +22,20 @@ def extract_text(infile="ljs_audio_text.txt", outfile=None):
                     f.write('{}'.format(text))
 
 
-def add_column(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_text_test_con.txt", outfile=None):
+def add_column(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_b_text_test_con.txt", outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     with open(infile) as file:
         for l in file:
-            matchline = re.match('(.*)\/(.*)\.wav\|(.*)\|(.*)\|(.*)', l)
+            matchline = re.match('(.*)\/(.*)\.wav\|(.*)\|(.*)\|(.*)\|(.*)', l)
             outname = matchline.group(2)
-            pitchpath = matchline.group(3)
-            cwtpath = matchline.group(4)
-            text = matchline.group(5)
-            wavpath = matchline.group(1) + '/' + outname + '.wav'
-            b_path = 'boundary/' + outname + '.pt'
-            rewrite = wavpath + '|' + pitchpath + '|' + cwtpath + '|' + b_path + '|' + text
+            text = matchline.group(6)
+            # wavpath = matchline.group(1) + '/' + outname + '.wav'
+            utt_path = 'no-pitch-' + outname + '.wav'
+            rewrite = utt_path + '\t' + text
             #print(rewrite)
             if outfile:
                 os.chdir(out_filepath)
-                with open("ljs_audio_pitch_prom_b_text_test_con.txt", 'a') as f:
+                with open("ljs_audio_text_test_no_pitch.tsv", 'a') as f:
                     f.write('{}\n'.format(rewrite))
 
 
