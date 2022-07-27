@@ -423,7 +423,7 @@ class FastPitch(nn.Module):
                 b_pred_label = torch.argmax(b_pred_label, dim=1)
                 if use_gt_cwt_b and cwt_b_tgt is not None:
                     cwt_b_emb = self.cwt_b_emb(cwt_b_tgt)
-                    print(f'cwt_b_emb type: {cwt_b_emb.type()}')
+                    # print(f'cwt_b_emb type: {cwt_b_emb.type()}')
                 else:
                     cwt_b_emb = self.b_emb(b_pred_label)
             else:
@@ -436,8 +436,8 @@ class FastPitch(nn.Module):
                     if use_gt_cwt_prom and cwt_prom_tgt is not None:
                         cwt_prom_tgt = cwt_prom_tgt.unsqueeze(1)  # [batch_size, 1, text_len]
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt).transpose(1, 2)
-                        print(f'cwt_prom_emb type: {cwt_prom_emb.type()}')
-                        print(f'cwt_prom_emb shape: {cwt_prom_emb.shape}')
+                        # print(f'cwt_prom_emb type: {cwt_prom_emb.type()}')
+                        # print(f'cwt_prom_emb shape: {cwt_prom_emb.shape}')
                     else:
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_pred)
                         cwt_prom_emb = cwt_prom_emb.transpose(1, 2)
