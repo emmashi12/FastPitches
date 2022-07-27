@@ -424,6 +424,7 @@ class FastPitch(nn.Module):
                 if use_gt_cwt_b and cwt_b_tgt is not None:
                     cwt_b_emb = self.cwt_b_emb(cwt_b_tgt)
                     print(f'cwt_b_emb type: {cwt_b_emb.type()}')
+                    print(type(type(cwt_b_emb)))
                 else:
                     cwt_b_emb = self.b_emb(b_pred_label)
             else:
