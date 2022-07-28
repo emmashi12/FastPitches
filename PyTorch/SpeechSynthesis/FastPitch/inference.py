@@ -250,7 +250,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
         print('prom_tensor:\n', fields['prom_tensor'])
 
         for i in order:
-            upsampled = upsampling_label(fields['prom'][i], fields['text_info'][i])[0]
+            upsampled = upsampling_label(fields['prom_tensor'][i], fields['text_info'][i])[0]
             print(f'upsampled:\n {upsampled}')
             fields['prom_upsampled'].append(upsampled)
 
