@@ -254,6 +254,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
             print(f'upsampled:\n {upsampled}')
             fields['prom_upsampled'].append(upsampled)
         fields['prom'] = [fields['prom'][i] for i in order]
+        fields['prom_tensor'] = [fields['prom_tensor'][i] for i in order]
 
     fields['text_info'] = [fields['text_info'][i] for i in order]
 
