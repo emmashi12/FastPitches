@@ -22,20 +22,24 @@ def extract_text(infile="ljs_audio_text.txt", outfile=None):
                     f.write('{}'.format(text))
 
 
-def add_column(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_b_text_test_con.txt", outfile=None):
+def add_column(infile="/Users/emmashi/Desktop/test_prom_cat.txt", outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     with open(infile) as file:
         for l in file:
-            matchline = re.match('(.*)\/(.*)\.wav\|(.*)\|(.*)\|(.*)\|(.*)', l)
-            outname = matchline.group(2)
-            text = matchline.group(6)
+            # matchline = re.match('(.*)\/(.*)\.wav\|(.*)\|(.*)\|(.*)\|(.*)', l)
+            # outname = matchline.group(2)
+            # text = matchline.group(6)
             # wavpath = matchline.group(1) + '/' + outname + '.wav'
-            utt_path = 'pitch-prom-cat-' + outname + '.wav'
-            rewrite = utt_path + '\t' + text
+            # utt_path = 'pitch-prom-cat-' + outname + '.wav'
+            matchline = re.match('(.*)\|(.*)\|(.*)', l)
+            prompath = matchline.group(1)
+            output = matchline.group(2)
+            text = matchline.group(3)
+            rewrite = prompath + '\t' + output + '\t' + text
             #print(rewrite)
             if outfile:
                 os.chdir(out_filepath)
-                with open("ljs_audio_text_test_pitch_prom_cat.tsv", 'a') as f:
+                with open("test_prom_control.tsv", 'a') as f:
                     f.write('{}\n'.format(rewrite))
 
 

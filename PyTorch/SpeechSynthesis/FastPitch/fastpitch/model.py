@@ -532,9 +532,11 @@ class FastPitch(nn.Module):
 
         # Predict cwt
         if self.cwt_conditioning:
+            print('------Controlling on CWT------')
             cwt_b_emb = None
             cwt_prom_emb = None
             if self.cwt_b_conditioning:
+                print('------Controlling on BOUNDARY------')
                 cwt_b_pred = self.cwt_b_predictor(enc_out, enc_mask).permute(0, 2, 1)
                 m = nn.Softmax(dim=1)
                 b_pred_label = m(cwt_b_pred)
@@ -547,6 +549,7 @@ class FastPitch(nn.Module):
                 cwt_b_pred = None
 
             if self.cwt_prom_conditioning:
+                print('------Controlling on PROMINENCE------')
                 if self.cwt_prom_continuous:
                     if cwt_prom_tgt is None:
                         cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
@@ -555,11 +558,11 @@ class FastPitch(nn.Module):
                         cwt_prom_tgt = cwt_prom_tgt.unsqueeze(1)
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt).transpose(1, 2)
                 else:
+                    cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                    m = nn.Softmax(dim=1)
+                    cwt_pred_label = m(cwt_prom_pred)  # [16, 3, 124]
+                    cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
                     if cwt_prom_tgt is None:
-                        cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                        m = nn.Softmax(dim=1)
-                        cwt_pred_label = m(cwt_prom_pred)  # [16, 3, 124]
-                        cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
                         cwt_prom_emb = self.cwt_prom_emb(cwt_pred_label)
                     else:
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt)
@@ -567,9 +570,9 @@ class FastPitch(nn.Module):
             else:
                 cwt_prom_pred = None
 
-            if cwt_b_emb:
+            if torch.is_tensor(cwt_b_emb):
                 enc_out += cwt_b_emb
-            if cwt_prom_emb:
+            if torch.is_tensor(cwt_prom_emb):
                 enc_out += cwt_prom_emb
 
         else:
@@ -582,7 +585,7 @@ class FastPitch(nn.Module):
 
         # Pitch over chars -------modified-------
         if self.pitch_conditioning:
-
+            print('------Controlling on pitch------')
             pitch_pred = self.pitch_predictor(enc_out, enc_mask).permute(0, 2, 1)
 
             if pitch_transform is not None:

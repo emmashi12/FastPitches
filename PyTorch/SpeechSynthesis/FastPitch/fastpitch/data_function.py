@@ -144,6 +144,7 @@ def upsampling_label(cwt_tensor, text_info):
         else:
             t = [0.0] * text_symbols[c]  # add label for non-words
             upsampled += t
+    upsampled = torch.LongTensor(upsampled)
     return upsampled, total_symbols
 
 
@@ -411,9 +412,8 @@ class TTSDataset(torch.utils.data.Dataset):
             # print(cwt_list)
             # print(f'text info: {text_info}')
 
-            upsampled, total_symbols = upsampling_label(cwt_prom, text_info)
+            cwt_prom_tensor, total_symbols = upsampling_label(cwt_prom, text_info)
 
-            cwt_prom_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
             # cwt_prom_tensor = torch.Tensor(upsampled)  # for continuous label
             # print(cwt_tensor.type())
             assert list(cwt_prom_tensor.size())[0] == total_symbols
@@ -427,8 +427,7 @@ class TTSDataset(torch.utils.data.Dataset):
             cwt_b = torch.load(bpath)
             # cwt_b_list = b.tolist()
 
-            upsampled, total_symbols = upsampling_label(cwt_b, text_info)
-            cwt_b_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
+            cwt_b_tensor, total_symbols = upsampling_label(cwt_b, text_info)
             assert list(cwt_b_tensor.size())[0] == total_symbols
 
             return cwt_b_tensor

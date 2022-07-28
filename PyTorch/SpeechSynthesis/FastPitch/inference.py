@@ -131,8 +131,10 @@ def parse_args(parser):
     cond = parser.add_argument_group('conditioning on additional attributes')
     cond.add_argument('--n-speakers', type=int, default=1,
                       help='Number of speakers in the model.')
-    cond.add_argument('--n-speakers', type=int, default=1,
-                      help='Number of speakers in the model.')
+    cond.add_argument('--cwt-prom-conditioning', action='store_true',
+                      help='Conditioning on prominence predictor.')
+    cond.add_argument('--cwt-b-conditioning', action='store_true',
+                      help='Conditioning on prominence predictor.')
 
     return parser
 
@@ -375,7 +377,9 @@ def main():
     fields = load_fields(args.input)
     batches = prepare_input_sequence(
         fields, device, args.symbol_set, args.text_cleaners, args.batch_size,
-        args.dataset_path, load_mels=(generator is None), p_arpabet=args.p_arpabet, get_count=args.get_count)
+        args.dataset_path, load_mels=(generator is None),
+        load_cwt_prom=args.cwt_prom_conditioning, load_cwt_b=args.cwt_b_conditioning,
+        p_arpabet=args.p_arpabet, get_count=args.get_count)
 
     # Use real data rather than synthetic - FastPitch predicts len
     for _ in tqdm(range(args.warmup_steps), 'Warmup'):
@@ -415,8 +419,13 @@ def main():
                 mel, mel_lens = b['mel'], b['mel_lens']
             else:
                 with torch.no_grad(), gen_measures:
-                    if args. == True and
-
+                    if args.cwt_prom_conditioning is True and args.cwt_b_conditioning is True:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw,
+                                                      cwt_prom_tgt=b['prom'], cwt_b_tgt=b['boundary'])
+                    elif args.cwt_prom_conditioning is True:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom'])
+                    elif args.cwt_b_conditioning is True:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_b_tgt=b['boundary'])
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
