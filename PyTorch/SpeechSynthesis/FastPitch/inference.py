@@ -200,7 +200,7 @@ def load_fields(fpath):
 
 def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                            batch_size=128, dataset=None, load_mels=False,
-                           load_pitch=False,
+                           load_pitch=False, load_cwt_prom=False, load_cwt_b=False,
                            p_arpabet=0.0, get_count=True):  #p_arpabet=1.0, load_cwt_prom=False, load_cwt_b=False,
     tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=get_count)
 
@@ -213,7 +213,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
         fields['text_info'].append(tp.encode_text(text)[1])
         fields['text'] = fields['text2']
 
-    order = np.argsort([-t.size(0) for t in fields['text']])
+    order = np.argsort([-t.size(0) for t in fields['text']])  # Returns the indices that would sort an array.
 
     fields['text'] = [fields['text'][i] for i in order]
     fields['text_lens'] = torch.LongTensor([t.size(0) for t in fields['text']])
@@ -233,14 +233,21 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
             torch.load(Path(dataset, fields['pitch'][i])) for i in order]
         fields['pitch_lens'] = torch.LongTensor([t.size(0) for t in fields['pitch']])
 
-    # if load_cwt_prom:
-    #     assert 'prom' in fields
-    #     fields['prom'] = []
-    #     for i in order:
-    #
-    #
-    # if load_cwt_b:
-    #     assert 'boundary' in fields
+    if load_cwt_prom:
+        assert 'prom' in fields
+        fields['prom'] = []
+        fields['prom_tensor'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
+        for i in order:
+            upsampled = upsampling_label(fields['prom_tensor'][i], fields['text_info'][i])[0]
+            fields['prom'].append(upsampled)
+
+    if load_cwt_b:
+        assert 'boundary' in fields
+        fields['boundary'] = []
+        fields['b_tensor'] = [torch.load(Path(dataset, fields['boundary'][i])) for i in order]
+        for i in order:
+            upsampled = upsampling_label(fields['b_tensor'][i], fields['text_info'][i])[0]
+            fields['boundary'].append(upsampled)
 
     if 'output' in fields:
         fields['output'] = [fields['output'][i] for i in order]
@@ -256,11 +263,15 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                 batch[f] = pad_sequence(batch[f], batch_first=True).permute(0, 2, 1)
             elif f == 'pitch' and load_pitch:
                 batch[f] = pad_sequence(batch[f], batch_first=True)
+            elif f == 'prom' and load_cwt_prom:
+                batch[f] = pad_sequence(batch[f], batch_first=True)
+            elif f == 'boundary' and load_cwt_b:
+                batch[f] = pad_sequence(batch[f], batch_first=True)
 
             if type(batch[f]) is torch.Tensor:
                 batch[f] = batch[f].to(device)
         batches.append(batch)
-
+    print(batches)
     return batches
 
 
@@ -401,7 +412,9 @@ def main():
                 mel, mel_lens = b['mel'], b['mel_lens']
             else:
                 with torch.no_grad(), gen_measures:
-                    mel, mel_lens, *_ = generator(b['text'], **gen_kw)
+                    if
+                    else:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
                 gen_infer_perf = mel.size(0) * mel.size(2) / gen_measures[-1]
                 all_letters += b['text_lens'].sum().item()

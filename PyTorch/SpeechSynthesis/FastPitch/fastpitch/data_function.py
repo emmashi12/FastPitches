@@ -126,10 +126,11 @@ def normalize_pitch(pitch, mean, std):
     return pitch
 
 
-def upsampling_label(tensor_list, text_info):
+def upsampling_label(cwt_tensor, text_info):
     text_symbols = [x[1] for x in text_info]
     text_words = [x[0] for x in text_info]
     total_symbols = sum(text_symbols)
+    tensor_list = cwt_tensor.tolist()
 
     upsampled = []
     words = re.compile('\w+')  # match for words
@@ -191,7 +192,7 @@ class TTSDataset(torch.utils.data.Dataset):
         self.dataset_path = dataset_path
         self.audiopaths_and_text = load_filepaths_and_text(
             audiopaths_and_text, dataset_path,
-            has_speakers=(n_speakers > 1)) #load_filepaths_and_text is a function from common.utils ***see line 42
+            has_speakers=(n_speakers > 1))  # load_filepaths_and_text is a function from common.utils ***see line 42
         self.load_mel_from_disk = load_mel_from_disk
         if not load_mel_from_disk:
             self.max_wav_value = max_wav_value
@@ -264,7 +265,7 @@ class TTSDataset(torch.utils.data.Dataset):
 
         mel = self.get_mel(audiopath)  # method see line 238
         # print(f'mel shape: {mel.shape}')
-        text, text_info = self.get_text(text)
+        text, text_info = self.get_text(text)  # text_info is tuple (word, number)
         # print(f'text shape: {text.shape}')
         pitch = self.get_pitch(index, mel.size(-1))
         # print(f'pitch shape: {pitch.shape}')
@@ -405,12 +406,12 @@ class TTSDataset(torch.utils.data.Dataset):
         if self.load_cwt_prom_from_disk:
             prompath = self.audiopaths_and_text[index]['prom']
             prompath = self.dataset_path + '/' + prompath
-            prom = torch.load(prompath)
-            cwt_prom_list = prom.tolist()
+            cwt_prom = torch.load(prompath)
+            # cwt_prom_list = prom.tolist()
             # print(cwt_list)
             # print(f'text info: {text_info}')
 
-            upsampled, total_symbols = upsampling_label(cwt_prom_list, text_info)
+            upsampled, total_symbols = upsampling_label(cwt_prom, text_info)
 
             # cwt_prom_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
             cwt_prom_tensor = torch.Tensor(upsampled)  # for continuous label
@@ -423,10 +424,10 @@ class TTSDataset(torch.utils.data.Dataset):
         if self.load_cwt_b_from_disk:
             bpath = self.audiopaths_and_text[index]['boundary']
             bpath = self.dataset_path + '/' + bpath
-            b = torch.load(bpath)
-            cwt_b_list = b.tolist()
+            cwt_b = torch.load(bpath)
+            # cwt_b_list = b.tolist()
 
-            upsampled, total_symbols = upsampling_label(cwt_b_list, text_info)
+            upsampled, total_symbols = upsampling_label(cwt_b, text_info)
             cwt_b_tensor = torch.LongTensor(upsampled)  # LongTensor for categorical label
             assert list(cwt_b_tensor.size())[0] == total_symbols
 
