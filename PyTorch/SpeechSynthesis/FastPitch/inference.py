@@ -253,6 +253,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
             upsampled = upsampling_label(fields['prom_tensor'][i], fields['text_info'][i])[0]
             print(f'upsampled:\n {upsampled}')
             fields['prom_upsampled'].append(upsampled)
+        fields['prom'] = [fields['prom'][i] for i in order]
 
     if 'output' in fields:
         fields['output'] = [fields['output'][i] for i in order]
