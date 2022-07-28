@@ -244,6 +244,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
         fields['prom_tensor'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
         for i in order:
             upsampled = upsampling_label(fields['prom_tensor'][i], fields['text_info'][i])[0]
+            print(f'upsampled:\n {upsampled}')
             fields['prom_upsampled'].append(upsampled)
 
     if 'output' in fields:
