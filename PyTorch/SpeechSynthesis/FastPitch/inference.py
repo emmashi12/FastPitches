@@ -131,6 +131,8 @@ def parse_args(parser):
     cond = parser.add_argument_group('conditioning on additional attributes')
     cond.add_argument('--n-speakers', type=int, default=1,
                       help='Number of speakers in the model.')
+    cond.add_argument('--n-speakers', type=int, default=1,
+                      help='Number of speakers in the model.')
 
     return parser
 

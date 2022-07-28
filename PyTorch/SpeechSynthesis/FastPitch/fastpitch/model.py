@@ -442,7 +442,7 @@ class FastPitch(nn.Module):
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_pred)
                         cwt_prom_emb = cwt_prom_emb.transpose(1, 2)
                 else:
-                    cwt_prom_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                    cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
                     # print(f'cwt_pred before softmax: {cwt_pred}')
                     m = nn.Softmax(dim=1)
                     cwt_pred_label = m(cwt_prom_pred)  # [16, 3, 124]
