@@ -434,8 +434,8 @@ def log_validation_batch(x, y_pred, rank):
         pred_specs_keys = ['mel_out', 'pitch_pred', 'energy_pred', 'attn_hard_dur']
         tgt_specs_keys = ['mel_padded', 'pitch_tgt', 'energy_tgt', 'attn_hard_dur']
 
-    # plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
-    #                  [validation_dict[key] for key in tgt_specs_keys]], rank)
+    plot_batch_mels([[validation_dict[key] for key in pred_specs_keys],
+                     [validation_dict[key] for key in tgt_specs_keys]], rank)
 
 
 def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
@@ -462,7 +462,7 @@ def validate(model, criterion, valset, batch_size, collate_fn, distributed_run,
             # print(f'mel_out shape in y_pred: {y_pred[0].shape}')
             # print(f'mel_tgt shape in x: {x[2].shape}')
 
-            loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum', is_continuous=True)
+            loss, meta = criterion(y_pred, y, is_training=False, meta_agg='sum', is_continuous=False)
             if i % 5 == 0:
                 log_validation_batch(x, y_pred, rank)  # error occurred here!!!!!!!!!
 
@@ -725,7 +725,7 @@ def main():
             with torch.cuda.amp.autocast(enabled=args.amp):
                 print("start training")
                 y_pred = model(x) #forward pass starts (calling the model)
-                loss, meta = criterion(y_pred, y, is_continuous=True)  # -----modified-----
+                loss, meta = criterion(y_pred, y, is_continuous=False)  # -----modified-----
 
                 if (args.kl_loss_start_epoch is not None
                         and epoch >= args.kl_loss_start_epoch):

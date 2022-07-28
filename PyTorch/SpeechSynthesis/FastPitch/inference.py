@@ -271,6 +271,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
             if type(batch[f]) is torch.Tensor:
                 batch[f] = batch[f].to(device)
         batches.append(batch)
+
     print(batches)
     return batches
 
@@ -412,7 +413,8 @@ def main():
                 mel, mel_lens = b['mel'], b['mel_lens']
             else:
                 with torch.no_grad(), gen_measures:
-                    if
+                    if args. == True and
+
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
