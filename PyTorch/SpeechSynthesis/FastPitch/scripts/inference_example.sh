@@ -5,6 +5,7 @@
 : ${BATCH_SIZE:=32}
 : ${PHRASES:="phrases/devset10.tsv"}
 : ${OUTPUT_DIR:="./output/audio_$(basename ${PHRASES} .tsv)"}
+: ${DATASET_PATH:=LJSpeech-1.1}
 : ${LOG_FILE:="$OUTPUT_DIR/nvlog_infer.json"}
 : ${AMP:=false}
 : ${TORCHSCRIPT:=false}
