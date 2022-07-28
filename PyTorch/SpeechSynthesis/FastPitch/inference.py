@@ -221,7 +221,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
     print(order.shape)
 
     fields['text'] = [fields['text'][i] for i in order]
-    fields['text_info'] = [fields['text_info'][i] for i in order]
+    # fields['text_info'] = [fields['text_info'][i] for i in order]
     # print('field text:\n', fields['text'])
     # print('field text_info:\n', fields['text_info'])
     fields['text_lens'] = torch.LongTensor([t.size(0) for t in fields['text']])
@@ -248,14 +248,11 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
         for prom in fields['prom']:
             fields['prom_tensor'].append(torch.load(Path(dataset, prom)))
         print('prom_tensor:\n', fields['prom_tensor'])
-        # fields['prom'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
-        # print('prom:\n', fields['prom'])
 
-        for i in range(fields['prom_tensor']):
+        for i in order:
             upsampled = upsampling_label(fields['prom'][i], fields['text_info'][i])[0]
             print(f'upsampled:\n {upsampled}')
             fields['prom_upsampled'].append(upsampled)
-        fields['prom_upsampled'] = [fields['prom_upsampled'][i] for i in order]
 
     if 'output' in fields:
         fields['output'] = [fields['output'][i] for i in order]
