@@ -551,8 +551,8 @@ class FastPitch(nn.Module):
             if self.cwt_prom_conditioning:
                 print('------Controlling on PROMINENCE------')
                 if self.cwt_prom_continuous:
+                    cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
                     if cwt_prom_tgt is None:
-                        cwt_prom_pred = self.cwt_prom_predictor(enc_out, enc_mask).permute(0, 2, 1)
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_pred)
                     else:
                         cwt_prom_tgt = cwt_prom_tgt.unsqueeze(1)
