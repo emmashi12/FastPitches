@@ -243,6 +243,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
         assert 'prom' in fields
         fields['prom_upsampled'] = []
         fields['prom'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
+        print('prom:\n', fields['prom'])
         for i in order:
             upsampled = upsampling_label(fields['prom'][i], fields['text_info'][i])[0]
             print(f'upsampled:\n {upsampled}')
