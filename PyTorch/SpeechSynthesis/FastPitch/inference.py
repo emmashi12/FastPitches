@@ -47,6 +47,7 @@ from common.tb_dllogger import (init_inference_metadata, stdout_metric_format,
                                 unique_log_fpath)
 from common.text import cmudict
 from common.text.text_processing import TextProcessing
+from fastpitch.data_function import upsampling_label
 from pitch_transform import pitch_transform_custom
 from waveglow import model as glow
 from waveglow.denoiser import Denoiser
@@ -124,11 +125,18 @@ def parse_args(parser):
                                  help='Type of text cleaners for input text')
     text_processing.add_argument('--symbol-set', type=str, default='english_basic',
                                  help='Define symbol set for input text')
+    text_processing.add_argument('--get-count', action='store_true',
+                                 help='Get info for upsampling cwt labels')
 
     cond = parser.add_argument_group('conditioning on additional attributes')
     cond.add_argument('--n-speakers', type=int, default=1,
                       help='Number of speakers in the model.')
-
+    cond.add_argument('--cwt-prominence', action='store_true',
+                      help='Conditioning on prominence predictor.')
+    # cond.add_argument('--cwt-continuous', action='store_true',
+    #                  help='Conditioning on continuous prominence predictor.')
+    # cond.add_argument('--cwt-3C', action='store_true',
+    #                  help='Conditioning on continuous prominence predictor.')
     return parser
 
 
@@ -197,11 +205,18 @@ def load_fields(fpath):
 
 def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                            batch_size=128, dataset=None, load_mels=False,
-                           load_pitch=False, p_arpabet=0.0):  #p_arpabet=1.0
-    tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet)
+                           load_pitch=False, load_cwt=False, p_arpabet=0.0, get_count=True):  #p_arpabet=1.0
+    tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=get_count)
 
-    fields['text'] = [torch.LongTensor(tp.encode_text(text))
-                      for text in fields['text']]
+    # fields['text'] = [torch.LongTensor(tp.encode_text(text))
+    #                  for text in fields['text']]
+    fields['text2'] = []
+    fields['text_info'] = []
+    for text in fields['text']:
+        fields['text2'].append(torch.LongTensor(tp.encode_text(text)[0]))
+        fields['text_info'].append(tp.encode_text(text)[1])
+        fields['text'] = fields['text2']
+
     order = np.argsort([-t.size(0) for t in fields['text']])
 
     fields['text'] = [fields['text'][i] for i in order]
@@ -222,6 +237,14 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
             torch.load(Path(dataset, fields['pitch'][i])) for i in order]
         fields['pitch_lens'] = torch.LongTensor([t.size(0) for t in fields['pitch']])
 
+    if load_cwt:
+        assert 'prom' in fields
+        fields['prom'] = []
+        fields['prom_tensor'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
+        for i in order:
+            upsampled = upsampling_label(fields['prom_tensor'][i], fields['text_info'][i])[0]
+            fields['prom'].append(upsampled)
+
     if 'output' in fields:
         fields['output'] = [fields['output'][i] for i in order]
 
@@ -236,11 +259,14 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                 batch[f] = pad_sequence(batch[f], batch_first=True).permute(0, 2, 1)
             elif f == 'pitch' and load_pitch:
                 batch[f] = pad_sequence(batch[f], batch_first=True)
+            elif f == 'prom' and load_cwt:
+                batch[f] = pad_sequence(batch[f], batch_first=True)
 
             if type(batch[f]) is torch.Tensor:
                 batch[f] = batch[f].to(device)
         batches.append(batch)
 
+    print(batches)
     return batches
 
 
@@ -341,7 +367,8 @@ def main():
     fields = load_fields(args.input)
     batches = prepare_input_sequence(
         fields, device, args.symbol_set, args.text_cleaners, args.batch_size,
-        args.dataset_path, load_mels=(generator is None), p_arpabet=args.p_arpabet)
+        args.dataset_path, load_mels=(generator is None), 
+        load_cwt=args.cwt_prominence, p_arpabet=args.p_arpabet, get_count=args.get_count)
 
     # Use real data rather than synthetic - FastPitch predicts len
     for _ in tqdm(range(args.warmup_steps), 'Warmup'):
@@ -381,7 +408,10 @@ def main():
                 mel, mel_lens = b['mel'], b['mel_lens']
             else:
                 with torch.no_grad(), gen_measures:
-                    mel, mel_lens, *_ = generator(b['text'], **gen_kw)
+                    if args.cwt_prominence is True:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_tgt=b['prom'])
+                    else:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
                 gen_infer_perf = mel.size(0) * mel.size(2) / gen_measures[-1]
                 all_letters += b['text_lens'].sum().item()

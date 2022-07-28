@@ -126,6 +126,26 @@ def normalize_pitch(pitch, mean, std):
     return pitch
 
 
+def upsampling_label(tensor_list, text_info):
+    text_symbols = [x[1] for x in text_info]
+    text_words = [x[0] for x in text_info]
+    total_symbols = sum(text_symbols)
+
+    upsampled = []
+    words = re.compile('\w+')  # match for words
+    tensor_index = 0
+
+    for c in range(len(text_words)):
+        if words.search(text_words[c]):
+            t = [tensor_list[tensor_index]] * text_symbols[c]  # upsample label
+            upsampled += t
+            tensor_index += 1
+        else:
+            t = [0.0] * text_symbols[c]  # add label for non-words
+            upsampled += t
+    return upsampled, total_symbols
+
+
 class TTSDataset(torch.utils.data.Dataset):
     """
         1) loads audio,text pairs
@@ -378,24 +398,8 @@ class TTSDataset(torch.utils.data.Dataset):
             cwt_list = prom.tolist()
             # print(cwt_list)
             # print(f'text info: {text_info}')
-
-            text_symbols = [x[1] for x in text_info]
-            text_words = [x[0] for x in text_info]
-            total_symbols = sum(text_symbols)
-            #print(total_symbols)
-
-            upsampled = []
-            words = re.compile('\w+')  # match for words
-            cwt_index = 0
-
-            for c in range(len(text_words)):
-                if words.search(text_words[c]):  # upsample cwt label
-                    t = [cwt_list[cwt_index]] * text_symbols[c]
-                    upsampled += t
-                    cwt_index += 1
-                else:
-                    t = [0.0] * text_symbols[c]  # add cwt label for non-words
-                    upsampled += t
+            
+            upsampled, total_symbols = upsampling_label(cwt_list, text_info)
 
             # print(upsampled)
             # print(len(upsampled))

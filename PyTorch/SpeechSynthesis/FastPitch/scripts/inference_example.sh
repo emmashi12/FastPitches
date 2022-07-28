@@ -9,7 +9,13 @@
 : ${AMP:=false}
 : ${TORCHSCRIPT:=false}
 : ${PHONE:=true}
+: ${PITCH:=false}
 : ${ENERGY:=true}
+: ${CWT:=false}
+: ${CWT_PROM:=false}
+: ${CWT_CON:=false}
+: ${CWT_3C:=false}
+: ${GET_COUNT:=true}
 : ${DENOISING:=0.01}
 : ${WARMUP:=0}
 : ${REPEATS:=1}
@@ -37,7 +43,13 @@ ARGS+=" --n-speakers $NUM_SPEAKERS"
 [ "$CPU" = false ]          && ARGS+=" --cudnn-benchmark"
 [ "$AMP" = true ]           && ARGS+=" --amp"
 [ "$PHONE" = "true" ]       && ARGS+=" --p-arpabet 1.0"
+[ "$PITCH" = "true" ]       && ARGS+=" --pitch-conditioning"
 [ "$ENERGY" = "true" ]      && ARGS+=" --energy-conditioning"
+[ "$CWT" = "true" ]         && ARGS+=" --cwt-prominence"
+[ "$CWT_PROM" = "true" ]         && ARGS+=" --cwt-conditioning"
+[ "$CWT_CON" = "true" ]            && ARGS+=" --cwt-continuous"
+[ "$CWT_3C" = "true" ]             && ARGS+=" --cwt-3C"
+[ "$GET_COUNT" = "true" ]   && ARGS+=" --get-count"
 [ "$TORCHSCRIPT" = "true" ] && ARGS+=" --torchscript"
 
 mkdir -p "$OUTPUT_DIR"
