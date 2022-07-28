@@ -240,11 +240,11 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
 
     if load_cwt:
         assert 'prom' in fields
-        fields['prom'] = []
+        fields['prom_upsampled'] = []
         fields['prom_tensor'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
         for i in order:
             upsampled = upsampling_label(fields['prom_tensor'][i], fields['text_info'][i])[0]
-            fields['prom'].append(upsampled)
+            fields['prom_upsampled'].append(upsampled)
 
     if 'output' in fields:
         fields['output'] = [fields['output'][i] for i in order]
@@ -260,7 +260,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                 batch[f] = pad_sequence(batch[f], batch_first=True).permute(0, 2, 1)
             elif f == 'pitch' and load_pitch:
                 batch[f] = pad_sequence(batch[f], batch_first=True)
-            elif f == 'prom' and load_cwt:
+            elif f == 'prom_upsampled' and load_cwt:
                 batch[f] = pad_sequence(batch[f], batch_first=True)
 
             if type(batch[f]) is torch.Tensor:
@@ -410,7 +410,7 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_tgt=b['prom'])
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_tgt=b['prom_upsampled'])
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
