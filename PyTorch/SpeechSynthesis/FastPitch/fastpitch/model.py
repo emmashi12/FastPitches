@@ -504,14 +504,16 @@ class FastPitch(nn.Module):
                 enc_out = enc_out + cwt_emb.transpose(1, 2)
             else:
                 print('Categorical Prominence')
+                cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
+                m = nn.Softmax(dim=1)
+                cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
+                cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
+                print(f'cwt_pred after argmax: {cwt_pred_label}')
                 if cwt_tgt is None:
-                    cwt_pred = self.cwt_predictor(enc_out, enc_mask).permute(0, 2, 1)
-                    m = nn.Softmax(dim=1)
-                    cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
-                    cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
                     cwt_emb = self.cwt_emb(cwt_pred_label)
                 else:
                     # print(cwt_tgt)
+                    print(f'cwt_tgt: {cwt_tgt}')
                     cwt_emb = self.cwt_emb(cwt_tgt)
                 enc_out = enc_out + cwt_emb
         else:
