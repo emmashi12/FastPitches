@@ -244,14 +244,18 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
     if load_cwt:
         assert 'prom' in fields
         fields['prom_upsampled'] = []
-        fields['prom'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
+        fields['prom_tensor'] = []
+        for prom in fields['prom']:
+            fields['prom_tensor'].append(torch.load(Path(dataset, prom)))
+        print('prom_tensor:\n', fields['prom_tensor'])
+        # fields['prom'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
         # print('prom:\n', fields['prom'])
 
-        # for i in order:
-        #     upsampled = upsampling_label(fields['prom'][i], fields['text_info'][i])[0]
-        #     # print(f'upsampled:\n {upsampled}')
-
-        fields['prom_upsampled'].append(upsampling_label(fields['prom'][i], fields['text_info'][i])[0] for i in order)
+        for i in range(fields['prom_tensor']):
+            upsampled = upsampling_label(fields['prom'][i], fields['text_info'][i])[0]
+            print(f'upsampled:\n {upsampled}')
+            fields['prom_upsampled'].append(upsampled)
+        fields['prom_upsampled'] = [fields['prom_upsampled'][i] for i in order]
 
     if 'output' in fields:
         fields['output'] = [fields['output'][i] for i in order]
