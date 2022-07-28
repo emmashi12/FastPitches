@@ -414,11 +414,12 @@ class FastPitch(nn.Module):
                 cwt_pred_label = m(cwt_pred)  # [16, 3, 124]
                 # print(f'cwt_pred after softmax: {cwt_pred_label}')
                 cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
-                # print(f'cwt_pred after argmax: {cwt_pred_label}')
+                print(f'cwt_pred after argmax: {cwt_pred_label}')
                 # print(f'cwt_pred type: {cwt_pred_label.type()}')
                 # cwt_pred.shape: [batch_size, 1, text_len], when predicting categorical labels
                 if use_gt_cwt and cwt_tgt is not None:
                     # cwt_tgt: [batch_size, text_len]
+                    print(f'cwt_tgt: {cwt_tgt}')
                     cwt_emb = self.cwt_emb(cwt_tgt)
                 else:
                     cwt_emb = self.cwt_emb(cwt_pred_label)
