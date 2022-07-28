@@ -218,6 +218,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
         fields['text'] = fields['text2']
 
     order = np.argsort([-t.size(0) for t in fields['text']])
+    print(order.shape)
 
     fields['text'] = [fields['text'][i] for i in order]
     fields['text_lens'] = torch.LongTensor([t.size(0) for t in fields['text']])
