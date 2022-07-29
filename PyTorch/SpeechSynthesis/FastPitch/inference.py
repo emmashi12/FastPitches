@@ -382,6 +382,8 @@ def main():
         fields, device, args.symbol_set, args.text_cleaners, args.batch_size,
         args.dataset_path, load_mels=(generator is None), 
         load_cwt=args.cwt_prominence, p_arpabet=args.p_arpabet, get_count=args.get_count)
+    # make directory for saving predicted pitch tensor ------modified-------
+    Path(args.dataset_path, 'generated_pitch').mkdir(parents=False, exist_ok=True)
 
     # Use real data rather than synthetic - FastPitch predicts len
     for _ in tqdm(range(args.warmup_steps), 'Warmup'):
@@ -422,7 +424,12 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_tgt=b['prom_upsampled'])
+                        mel, mel_lens, _, pitch_pred, _, _ = generator(b['text'], **gen_kw, cwt_tgt=b['prom_upsampled'])
+                        # save predicted pitch tensor
+                        for j, p in enumerate(pitch_pred):
+                            fname = Path(b['output'][j]).with_suffix('.pt').name
+                            fpath = Path(args.dataset_path, 'generated_pitch', fname)
+                            torch.save(p[:mel_lens[j]], fpath)
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
