@@ -428,6 +428,7 @@ def main():
                         mel, mel_lens, _, pitch_pred, _, _ = generator(b['text'], **gen_kw, cwt_tgt=b['prom_upsampled'])
                         # plot pitch_pred and save the plot
                         for i in range(args.batch_size):
+                            print(pitch_pred.shape)
                             image = pitch_pred[i].permute(1, 2, 0)
                             image_name = 'f0_contour_' + str(i) + '.png'
                             plt.imshow(image)
