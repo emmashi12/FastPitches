@@ -5,12 +5,16 @@
 : ${BATCH_SIZE:=32}
 : ${PHRASES:="phrases/devset10.tsv"}
 : ${OUTPUT_DIR:="./output/audio_$(basename ${PHRASES} .tsv)"}
+: ${DATASET_PATH:=LJSpeech-1.1}
 : ${LOG_FILE:="$OUTPUT_DIR/nvlog_infer.json"}
 : ${AMP:=false}
 : ${TORCHSCRIPT:=false}
 : ${PHONE:=true}
 : ${PITCH:=false}
 : ${ENERGY:=false}
+: ${PROM:=false}
+: ${BOUN:=false}
+
 : ${CWT:=false}
 : ${CWT_PROM:=false}
 : ${CWT_PROM_CON:=false}
@@ -33,6 +37,7 @@ ARGS+=" -o $OUTPUT_DIR"
 ARGS+=" --log-file $LOG_FILE"
 ARGS+=" --fastpitch $FASTPITCH"
 ARGS+=" --waveglow $WAVEGLOW"
+ARGS+=" --dataset-path $DATASET_PATH"
 ARGS+=" --wn-channels 256"
 ARGS+=" --batch-size $BATCH_SIZE"
 ARGS+=" --denoising-strength $DENOISING"
@@ -46,11 +51,13 @@ ARGS+=" --n-speakers $NUM_SPEAKERS"
 [ "$PHONE" = "true" ]         && ARGS+=" --p-arpabet 1.0"
 [ "$PITCH" = "true" ]         && ARGS+=" --pitch-conditioning"
 [ "$ENERGY" = "true" ]        && ARGS+=" --energy-conditioning"
+[ "$PROM" = "true" ]          && ARGS+=" --cwt-prominence"
+[ "$BOUN" = "true" ]          && ARGS+=" --cwt-boundary"
 [ "$CWT" = "true" ]           && ARGS+=" --cwt-conditioning"
 [ "$CWT_PROM" = "true" ]      && ARGS+=" --cwt-prom-conditioning"
 [ "$CWT_PROM_CON" = "true" ]  && ARGS+=" --cwt-prom-continuous"
 [ "$CWT_PROM_3C" = "true" ]   && ARGS+=" --cwt-prom-3C"
-[ "$BOUNDARY" = "true" ]      && ARGS+=" --cwt-b-conditioning"
+[ "$CWT_B" = "true" ]         && ARGS+=" --cwt-b-conditioning"
 [ "$GET_COUNT" = "true" ]     && ARGS+=" --get-count"
 [ "$TORCHSCRIPT" = "true" ]   && ARGS+=" --torchscript"
 

@@ -131,9 +131,9 @@ def parse_args(parser):
     cond = parser.add_argument_group('conditioning on additional attributes')
     cond.add_argument('--n-speakers', type=int, default=1,
                       help='Number of speakers in the model.')
-    cond.add_argument('--cwt-prom-conditioning', action='store_true',
+    cond.add_argument('--cwt-prominence', action='store_true',
                       help='Conditioning on prominence predictor.')
-    cond.add_argument('--cwt-b-conditioning', action='store_true',
+    cond.add_argument('--cwt-boundary', action='store_true',
                       help='Conditioning on prominence predictor.')
 
     return parser
@@ -205,7 +205,8 @@ def load_fields(fpath):
 def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                            batch_size=128, dataset=None, load_mels=False,
                            load_pitch=False, load_cwt_prom=False, load_cwt_b=False,
-                           p_arpabet=0.0, get_count=True):  #p_arpabet=1.0, load_cwt_prom=False, load_cwt_b=False,
+                           p_arpabet=0.0, get_count=True):  
+    # p_arpabet=1.0, load_cwt_prom=False, load_cwt_b=False,
     tp = TextProcessing(symbol_set, text_cleaners, p_arpabet=p_arpabet, get_count=get_count)
 
     # fields['text'] = [torch.LongTensor(tp.encode_text(text))
@@ -239,19 +240,31 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
 
     if load_cwt_prom:
         assert 'prom' in fields
-        fields['prom'] = []
-        fields['prom_tensor'] = [torch.load(Path(dataset, fields['prom'][i])) for i in order]
+        fields['prom_upsampled'] = []
+        fields['prom_tensor'] = []
+        for prom in fields['prom']:
+            fields['prom_tensor'].append(torch.load(Path(dataset, prom)))
+
         for i in order:
             upsampled = upsampling_label(fields['prom_tensor'][i], fields['text_info'][i])[0]
-            fields['prom'].append(upsampled)
+            fields['prom_upsampled'].append(upsampled)
+        fields['prom'] = [fields['prom'][i] for i in order]
+        fields['prom_tensor'] = [fields['prom_tensor'][i] for i in order]
 
     if load_cwt_b:
         assert 'boundary' in fields
-        fields['boundary'] = []
-        fields['b_tensor'] = [torch.load(Path(dataset, fields['boundary'][i])) for i in order]
+        fields['b_upsampled'] = []
+        fields['b_tensor'] = []
+        for b in fields['boundary']:
+            fields['b_tensor'].append(torch.load(Path(dataset, b)))
+
         for i in order:
             upsampled = upsampling_label(fields['b_tensor'][i], fields['text_info'][i])[0]
-            fields['boundary'].append(upsampled)
+            fields['b_upsampled'].append(upsampled)
+        fields['boundary'] = [fields['boundary'][i] for i in order]
+        fields['b_tensor'] = [fields['b_tensor'][i] for i in order]
+
+    fields['text_info'] = [fields['text_info'][i] for i in order]
 
     if 'output' in fields:
         fields['output'] = [fields['output'][i] for i in order]
@@ -267,9 +280,9 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                 batch[f] = pad_sequence(batch[f], batch_first=True).permute(0, 2, 1)
             elif f == 'pitch' and load_pitch:
                 batch[f] = pad_sequence(batch[f], batch_first=True)
-            elif f == 'prom' and load_cwt_prom:
+            elif f == 'prom_upsampled' and load_cwt_prom:
                 batch[f] = pad_sequence(batch[f], batch_first=True)
-            elif f == 'boundary' and load_cwt_b:
+            elif f == 'b_upsampled' and load_cwt_b:
                 batch[f] = pad_sequence(batch[f], batch_first=True)
 
             if type(batch[f]) is torch.Tensor:
@@ -378,7 +391,7 @@ def main():
     batches = prepare_input_sequence(
         fields, device, args.symbol_set, args.text_cleaners, args.batch_size,
         args.dataset_path, load_mels=(generator is None),
-        load_cwt_prom=args.cwt_prom_conditioning, load_cwt_b=args.cwt_b_conditioning,
+        load_cwt_prom=args.cwt_prominence, load_cwt_b=args.cwt_boundary,
         p_arpabet=args.p_arpabet, get_count=args.get_count)
 
     # Use real data rather than synthetic - FastPitch predicts len
@@ -419,13 +432,13 @@ def main():
                 mel, mel_lens = b['mel'], b['mel_lens']
             else:
                 with torch.no_grad(), gen_measures:
-                    if args.cwt_prom_conditioning is True and args.cwt_b_conditioning is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw,
-                                                      cwt_prom_tgt=b['prom'], cwt_b_tgt=b['boundary'])
-                    elif args.cwt_prom_conditioning is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom'])
-                    elif args.cwt_b_conditioning is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_b_tgt=b['boundary'])
+                    if args.cwt_prominence is True and args.cwt_boundary is True:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'], 
+                                                      cwt_b_tgt=b['b_upsampled'])
+                    elif args.cwt_prominence is True:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'])
+                    elif args.cwt_boundary is True:
+                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_b_tgt=b['b_upsampled'])
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
