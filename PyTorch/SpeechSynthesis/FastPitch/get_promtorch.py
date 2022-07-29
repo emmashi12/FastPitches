@@ -1,3 +1,4 @@
+import re
 import glob, os
 import pandas as pd
 import torch
@@ -16,25 +17,42 @@ def get_cwt_tensor(file, outpath):
     torch.save(b_tensor, fpath)
 
 
+def get_controlled_tensor(list, file, outpath):
+    tst = pd.read_csv(file, delimiter='\t')
+    prom = tst['prom'].to_list()
+    name_list = []
+    for l in prom:
+        print(type(l))
+        matchline = re.match('(.*)\/(.*)', l)
+        fname = matchline.group(2)
+        name_list.append(fname)
+    for j, p in enumerate(list):
+        prom_tensor = torch.LongTensor(p)
+        print('prom tensor:', prom_tensor)
+        fpath = Path(outpath, name_list[j])
+        torch.save(prom_tensor, fpath)
+
+
 # in_filepath = '/Users/emmashi/Desktop/labelled_file_3C'
-in_filepath = '/Users/emmashi/Desktop/test_prom_control.tsv'
+in_filepath = '/Users/emmashi/Desktop/control_focus.tsv'
 # os.chdir(in_filepath)
 head, tail = os.path.split(in_filepath)
 
-out_filepath = head + '/test_prom_cat/'
+out_filepath = head + '/control_accent/'
 os.makedirs(out_filepath, exist_ok=True)
 #
 # for file in glob.glob("*.prom"):
 #     get_cwt_tensor(file, out_filepath)
-l1 = [1,1,1,1,3]
-l2 = [1,1,1,3,1]
-l3 = [3,1,1,1,1]
-l4 = [1,3,1,1,1]
-l5 = [1,1,1,3,1]
-l6 = [1,1,1,1,3]
 
+accent = [[3, 1, 1, 1], [1, 3, 1, 1], [1, 1, 1, 3],
+          [3, 1, 1, 1], [1, 3, 1, 1], [1, 1, 1, 3],
+          [1, 3, 1, 1, 1], [1, 1, 3, 1, 1], [1, 1, 1, 1, 3],
+          [3, 1, 1, 1], [1, 3, 1, 1], [1, 1, 1, 3],
+          [1, 3, 1, 1, 1], [1, 1, 3, 1, 1], [1, 1, 1, 1, 3],
+          [3, 1, 1, 1], [1, 3, 1, 1], [1, 1, 1, 3],
+          [3, 1, 1, 1, 1], [1, 3, 1, 1, 1], [1, 1, 1, 1, 3],
+          [3, 1, 1, 1], [1, 3, 1, 1], [1, 1, 1, 3],
+          [1, 3, 1, 1, 1], [1, 1, 3, 1, 1], [1, 1, 1, 1, 3],
+          [3, 1, 1, 1], [1, 3, 1, 1], [1, 1, 1, 3]]
 
-prom_tensor = torch.LongTensor(l4)
-print(prom_tensor)
-out_name = out_filepath + '002-1.pt'
-torch.save(prom_tensor, out_name)
+get_controlled_tensor(accent, in_filepath, out_filepath)

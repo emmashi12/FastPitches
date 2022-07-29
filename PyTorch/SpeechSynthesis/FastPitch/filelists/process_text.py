@@ -22,7 +22,7 @@ def extract_text(infile="ljs_audio_text.txt", outfile=None):
                     f.write('{}'.format(text))
 
 
-def add_column(infile="/Users/emmashi/Desktop/test_prom_cat.txt", outfile=None):
+def add_column(infile="/Users/emmashi/Desktop/control_focus_2.txt", outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     with open(infile) as file:
         for l in file:
@@ -39,7 +39,7 @@ def add_column(infile="/Users/emmashi/Desktop/test_prom_cat.txt", outfile=None):
             #print(rewrite)
             if outfile:
                 os.chdir(out_filepath)
-                with open("test_prom_control.tsv", 'a') as f:
+                with open("control_focus_2.tsv", 'a') as f:
                     f.write('{}\n'.format(rewrite))
 
 
@@ -70,7 +70,7 @@ def extract_infer_text(infile="/Users/emmashi/Desktop/test_infer.txt", outfile=N
         for l in file:
             #print(type(l))
             #print(l)
-            matchline = re.match('(.*)\.mp3(.*)', l)
+            matchline = re.match('(.*)\.mp3\s(.*)', l)
             #print(outname)
             #print(outname + ".lab")
             text = matchline.group(2)
