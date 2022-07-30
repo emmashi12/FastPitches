@@ -393,6 +393,7 @@ def main():
         args.dataset_path, load_mels=(generator is None),
         load_cwt_prom=args.cwt_prominence, load_cwt_b=args.cwt_boundary,
         p_arpabet=args.p_arpabet, get_count=args.get_count)
+    Path(args.dataset_path, 'generated_pitch').mkdir(parents=False, exist_ok=True)
 
     # Use real data rather than synthetic - FastPitch predicts len
     for _ in tqdm(range(args.warmup_steps), 'Warmup'):
@@ -433,14 +434,20 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True and args.cwt_boundary is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'], 
+                        mel, mel_lens,  _, pitch_pred, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'],
                                                       cwt_b_tgt=b['b_upsampled'])
                     elif args.cwt_prominence is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'])
+                        mel, mel_lens, _, pitch_pred, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'])
                     elif args.cwt_boundary is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_b_tgt=b['b_upsampled'])
+                        mel, mel_lens, _, pitch_pred, *_ = generator(b['text'], **gen_kw, cwt_b_tgt=b['b_upsampled'])
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
+
+                    # if pitch_pred:
+                    #     for j, p in enumerate(pitch_pred):
+                    #         fname = Path(b['output'][j]).with_suffix('.pt').name
+                    #         fpath = Path(args.dataset_path, 'generated_pitch', fname)
+                    #         torch.save(p[:mel_lens[j]], fpath)
 
                 gen_infer_perf = mel.size(0) * mel.size(2) / gen_measures[-1]
                 all_letters += b['text_lens'].sum().item()
