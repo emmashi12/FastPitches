@@ -541,7 +541,7 @@ class FastPitch(nn.Module):
                 m = nn.Softmax(dim=1)
                 b_pred_label = m(cwt_b_pred)
                 b_pred_label = torch.argmax(b_pred_label, dim=1)
-                if use_gt_cwt_b and cwt_b_tgt is not None:
+                if cwt_b_tgt is not None:
                     cwt_b_emb = self.cwt_b_emb(cwt_b_tgt)
                 else:
                     cwt_b_emb = self.b_emb(b_pred_label)
