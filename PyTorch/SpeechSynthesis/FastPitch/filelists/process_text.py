@@ -22,7 +22,7 @@ def extract_text(infile="ljs_audio_text.txt", outfile=None):
                     f.write('{}'.format(text))
 
 
-def add_column(infile="/Users/emmashi/Desktop/control_focus_2.txt", outfile=None):
+def add_column(infile="/Users/emmashi/Desktop/control_boundary.txt", outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     with open(infile) as file:
         for l in file:
@@ -39,7 +39,7 @@ def add_column(infile="/Users/emmashi/Desktop/control_focus_2.txt", outfile=None
             #print(rewrite)
             if outfile:
                 os.chdir(out_filepath)
-                with open("control_focus_2.tsv", 'a') as f:
+                with open("control_boundary.tsv", 'a') as f:
                     f.write('{}\n'.format(rewrite))
 
 

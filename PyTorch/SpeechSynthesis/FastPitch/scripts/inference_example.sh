@@ -19,7 +19,7 @@
 : ${CWT_PROM:=false}
 : ${CWT_PROM_CON:=false}
 : ${CWT_PROM_3C:=false}
-: ${BOUNDARY:=false}
+: ${CWT_B:=false}
 : ${GET_COUNT:=true}
 : ${DENOISING:=0.01}
 : ${WARMUP:=0}

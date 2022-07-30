@@ -19,7 +19,7 @@ def get_cwt_tensor(file, outpath):
 
 def get_controlled_tensor(list, file, outpath):
     tst = pd.read_csv(file, delimiter='\t')
-    prom = tst['prom'].to_list()
+    prom = tst['boundary'].to_list()
     name_list = []
     for l in prom:
         print(type(l))
@@ -28,17 +28,17 @@ def get_controlled_tensor(list, file, outpath):
         name_list.append(fname)
     for j, p in enumerate(list):
         prom_tensor = torch.LongTensor(p)
-        print('prom tensor:', prom_tensor)
+        print('boundary tensor:', prom_tensor)
         fpath = Path(outpath, name_list[j])
         torch.save(prom_tensor, fpath)
 
 
 # in_filepath = '/Users/emmashi/Desktop/labelled_file_3C'
-in_filepath = '/Users/emmashi/Desktop/control_focus.tsv'
+in_filepath = '/Users/emmashi/Desktop/control_boundary.tsv'
 # os.chdir(in_filepath)
 head, tail = os.path.split(in_filepath)
 
-out_filepath = head + '/control_accent/'
+out_filepath = head + '/control_boundary/'
 os.makedirs(out_filepath, exist_ok=True)
 #
 # for file in glob.glob("*.prom"):
@@ -55,4 +55,10 @@ accent = [[3, 1, 1, 1], [1, 3, 1, 1], [1, 1, 1, 3],
           [1, 3, 1, 1, 1], [1, 1, 3, 1, 1], [1, 1, 1, 1, 3],
           [3, 1, 1, 1], [1, 3, 1, 1], [1, 1, 1, 3]]
 
-get_controlled_tensor(accent, in_filepath, out_filepath)
+boundary1 = [[1,1,3,3], [3,1,1,3],
+             [1,1,3,1,1,1,3,1,1,2,1,1,1,3], [1,1,3,1,1,1,1,3,1,2,1,1,1,3],
+             [1,1,1,1,1,1,3,1,2,1,1,1,3], [1,1,1,1,2,3,1,1,2,1,1,1,3],
+             [1,1,1,1,1,3,1,1,2,1,3], [1,1,1,3,1,1,1,1,2,1,3],
+             [3,1,1,2,1,1,1,1,2,3,1,1,3], [3,1,1,2,1,1,1,1,1,1,3,1,3]]
+
+get_controlled_tensor(boundary1, in_filepath, out_filepath)
