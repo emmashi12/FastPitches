@@ -434,20 +434,20 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True and args.cwt_boundary is True:
-                        mel, mel_lens,  _, pitch_pred, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'],
-                                                      cwt_b_tgt=b['b_upsampled'])
+                        mel, mel_lens, *_, pitch_regulated = generator(b['text'], **gen_kw, 
+                                                                       cwt_prom_tgt=b['prom_upsampled'], cwt_b_tgt=b['b_upsampled'])
                     elif args.cwt_prominence is True:
-                        mel, mel_lens, _, pitch_pred, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'])
+                        mel, mel_lens, *_, pitch_regulated = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'])
                     elif args.cwt_boundary is True:
-                        mel, mel_lens, _, pitch_pred, *_ = generator(b['text'], **gen_kw, cwt_b_tgt=b['b_upsampled'])
+                        mel, mel_lens, *_, pitch_regulated = generator(b['text'], **gen_kw, cwt_b_tgt=b['b_upsampled'])
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
-                    # if pitch_pred:
-                    #     for j, p in enumerate(pitch_pred):
-                    #         fname = Path(b['output'][j]).with_suffix('.pt').name
-                    #         fpath = Path(args.dataset_path, 'generated_pitch', fname)
-                    #         torch.save(p[:mel_lens[j]], fpath)
+                    if pitch_regulated:
+                        for j, p in enumerate(pitch_pred):
+                            fname = Path(b['output'][j]).with_suffix('.pt').name
+                            fpath = Path(args.dataset_path, 'generated_pitch', fname)
+                            torch.save(p[:mel_lens[j]], fpath)
 
                 gen_infer_perf = mel.size(0) * mel.size(2) / gen_measures[-1]
                 all_letters += b['text_lens'].sum().item()

@@ -1,8 +1,8 @@
-import glob, os
-import torch
+import parselmouth
+
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mp
+import seaborn as sns
 
 in_filepath = '/Users/emmashi/Desktop/generated_pitch'
 os.chdir(in_filepath)
