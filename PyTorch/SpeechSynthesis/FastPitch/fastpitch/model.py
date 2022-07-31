@@ -621,13 +621,8 @@ class FastPitch(nn.Module):
             dur_pred if dur_tgt is None else dur_tgt,
             enc_out, pace, mel_max_len=None)
 
-        pitch_regulated = regulate_len(
-            dur_pred if dur_tgt is None else dur_tgt,
-            pitch_pred, pace, mel_max_len=None)[0]
-        print(f'pitch_regulated shape: {pitch_regulated.shape}')
-
         dec_out, dec_mask = self.decoder(len_regulated, dec_lens)
         mel_out = self.proj(dec_out)
         # mel_lens = dec_mask.squeeze(2).sum(axis=1).long()
         mel_out = mel_out.permute(0, 2, 1)  # For inference.py
-        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_prom_pred, cwt_b_pred, pitch_regulated
+        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_prom_pred, cwt_b_pred
