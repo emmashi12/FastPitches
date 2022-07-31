@@ -544,7 +544,7 @@ class FastPitch(nn.Module):
                 if cwt_b_tgt is not None:
                     cwt_b_emb = self.cwt_b_emb(cwt_b_tgt)
                 else:
-                    cwt_b_emb = self.b_emb(b_pred_label)
+                    cwt_b_emb = self.cwt_b_emb(b_pred_label)
             else:
                 cwt_b_pred = None
 
