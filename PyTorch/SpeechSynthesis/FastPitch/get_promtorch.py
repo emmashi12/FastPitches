@@ -34,11 +34,11 @@ def get_controlled_tensor(list, file, outpath):
 
 
 # in_filepath = '/Users/emmashi/Desktop/labelled_file_3C'
-in_filepath = '/Users/emmashi/Desktop/control_boundary.tsv'
+in_filepath = '/Users/emmashi/Desktop/test_B.tsv'
 # os.chdir(in_filepath)
 head, tail = os.path.split(in_filepath)
 
-out_filepath = head + '/control_boundary/'
+out_filepath = head + '/test_B/'
 os.makedirs(out_filepath, exist_ok=True)
 #
 # for file in glob.glob("*.prom"):
@@ -69,4 +69,6 @@ emphasis1 = [[1,1,3,3], [3,1,1,3],
              [1,1,1,1,1,3,1,1,2,1,3], [1,1,1,3,1,1,1,1,2,1,3],
              [3,1,1,2,1,1,1,1,2,3,1,1,3], [3,1,1,2,1,1,1,1,1,1,3,1,3]]
 
-get_controlled_tensor(boundary1, in_filepath, out_filepath)
+test_B = [[3,1,1,1], [1,3,1,1], [1,1,3,1], [1,1,1,3]]
+
+get_controlled_tensor(test_B, in_filepath, out_filepath)
