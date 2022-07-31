@@ -624,6 +624,7 @@ class FastPitch(nn.Module):
         pitch_regulated = regulate_len(
             dur_pred if dur_tgt is None else dur_tgt,
             pitch_pred, pace, mel_max_len=None)[0]
+        print(f'pitch_regulated shape: {pitch_regulated.shape}')
 
         dec_out, dec_mask = self.decoder(len_regulated, dec_lens)
         mel_out = self.proj(dec_out)
