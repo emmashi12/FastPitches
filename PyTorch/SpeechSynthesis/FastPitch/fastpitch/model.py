@@ -637,4 +637,4 @@ class FastPitch(nn.Module):
         mel_out = self.proj(dec_out)
         # mel_lens = dec_mask.squeeze(2).sum(axis=1).long()
         mel_out = mel_out.permute(0, 2, 1)  # For inference.py
-        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_prom_pred, cwt_b_pred, b_correct, b_total, p_correct, p_total
+        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_prom_pred, cwt_b_pred  # b_correct, b_total, p_correct, p_total
