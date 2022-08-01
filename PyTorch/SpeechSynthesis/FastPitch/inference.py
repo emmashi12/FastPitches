@@ -388,6 +388,7 @@ def main():
         raise ValueError(f'Invalid options {unk_args}')
 
     fields = load_fields(args.input)
+    print(fields)
     batches = prepare_input_sequence(
         fields, device, args.symbol_set, args.text_cleaners, args.batch_size,
         args.dataset_path, load_mels=(generator is None),

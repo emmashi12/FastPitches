@@ -19,7 +19,7 @@ def get_cwt_tensor(file, outpath):
 
 def get_controlled_tensor(list, file, outpath):
     tst = pd.read_csv(file, delimiter='\t')
-    prom = tst['boundary'].to_list()
+    prom = tst['prom'].to_list()
     name_list = []
     for l in prom:
         print(type(l))
@@ -34,11 +34,11 @@ def get_controlled_tensor(list, file, outpath):
 
 
 # in_filepath = '/Users/emmashi/Desktop/labelled_file_3C'
-in_filepath = '/Users/emmashi/Desktop/test_B.tsv'
+in_filepath = '/Users/emmashi/Desktop/control_P+B.tsv'
 # os.chdir(in_filepath)
 head, tail = os.path.split(in_filepath)
 
-out_filepath = head + '/test_B/'
+out_filepath = head + '/test-PB1/'
 os.makedirs(out_filepath, exist_ok=True)
 #
 # for file in glob.glob("*.prom"):
@@ -71,4 +71,8 @@ emphasis1 = [[1,1,3,3], [3,1,1,3],
 
 test_B = [[3,1,1,1], [1,3,1,1], [1,1,3,1], [1,1,1,3]]
 
-get_controlled_tensor(test_B, in_filepath, out_filepath)
+
+prominence = [[1,1,1,2,3,2,2,1,2,1,1,2],[1,1,1,2,2,3,2,1,2,1,1,2],[2,1,2,2,2,2,2,2,2,3],[2,1,2,2,3,2,2,2,2,3]]
+boundary = [[1,1,1,1,3,1,1,1,1,1,1,3],[1,1,1,3,1,1,1,1,1,1,1,3],[1,1,2,1,1,1,3,1,1,3],[1,1,1,3,1,1,1,1,1,3]]
+
+get_controlled_tensor(prominence, in_filepath, out_filepath)
