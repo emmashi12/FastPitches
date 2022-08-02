@@ -488,6 +488,8 @@ class FastPitch(nn.Module):
             spk_emb = self.speaker_emb(speaker).unsqueeze(1)
             spk_emb.mul_(self.speaker_emb_weight)
 
+        text_lens = inputs[1]
+
         # Input FFT
         enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb)
 
@@ -565,4 +567,4 @@ class FastPitch(nn.Module):
         mel_out = self.proj(dec_out)
         # mel_lens = dec_mask.squeeze(2).sum(axis=1).long()
         mel_out = mel_out.permute(0, 2, 1)  # For inference.py
-        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_pred
+        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_pred, cwt_tgt, cwt_pred_label, text_lens

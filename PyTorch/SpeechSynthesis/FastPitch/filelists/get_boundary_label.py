@@ -55,3 +55,4 @@ for file in glob.glob('*.prom'):
     #print(data)
     #print(out_filepath + file)
     write_csv_file(out_filepath + file, data)
+

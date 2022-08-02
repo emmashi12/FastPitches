@@ -383,8 +383,9 @@ def main():
         fields, device, args.symbol_set, args.text_cleaners, args.batch_size,
         args.dataset_path, load_mels=(generator is None), 
         load_cwt=args.cwt_prominence, p_arpabet=args.p_arpabet, get_count=args.get_count)
-    # make directory for saving predicted pitch tensor ------modified-------
-    Path(args.dataset_path, 'generated_pitch').mkdir(parents=False, exist_ok=True)
+    # make directory for saving tgt and pred cwt tensor ------modified-------
+    Path(args.dataset_path, 'tgt_cwt').mkdir(parents=False, exist_ok=True)
+    Path(args.dataset_path, 'pred_cwt').mkdir(parents=False, exist_ok=True)
 
     # Use real data rather than synthetic - FastPitch predicts len
     for _ in tqdm(range(args.warmup_steps), 'Warmup'):
@@ -425,21 +426,19 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True:
-                        mel, mel_lens, _, pitch_pred, _, _ = generator(b['text'], **gen_kw, cwt_tgt=b['prom_upsampled'])
-                        # plot pitch_pred and save the plot
-                        #for i in range(args.batch_size):
-                        print(pitch_pred.shape)
-                        image = pitch_pred.permute(1, 2, 0)
-                        image_name = 'f0_contour' + '.png'
-                        plt.imshow(image)
-                        plt.show()
-                        plt.savefig(image_name)
+                        mel, mel_lens, *_, cwt_tgt, cwt_pred_label, text_lens = generator(b['text'],
+                                                                                          **gen_kw, cwt_tgt=b['prom_upsampled'])
 
                         # save predicted pitch tensor
-                        for j, p in enumerate(pitch_pred):
+                        for j, p in enumerate(cwt_tgt):
                             fname = Path(b['output'][j]).with_suffix('.pt').name
-                            fpath = Path(args.dataset_path, 'generated_pitch', fname)
-                            torch.save(p[:mel_lens[j]], fpath)
+                            fpath = Path(args.dataset_path, 'tgt_cwt', fname)
+                            torch.save(p[:text_lens[j]], fpath)
+
+                        for j, p in enumerate(cwt_pred_label):
+                            fname = Path(b['output'][j]).with_suffix('.pt').name
+                            fpath = Path(args.dataset_path, 'pred_cwt', fname)
+                            torch.save(p[:text_lens[j]], fpath)
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
