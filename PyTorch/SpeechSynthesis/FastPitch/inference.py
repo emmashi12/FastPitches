@@ -248,11 +248,11 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
         fields['prom_tensor'] = []
         for prom in fields['prom']:
             fields['prom_tensor'].append(torch.load(Path(dataset, prom)))
-        print('prom_tensor:\n', fields['prom_tensor'])
+        # print('prom_tensor:\n', fields['prom_tensor'])
 
         for i in order:
             upsampled = upsampling_label(fields['prom_tensor'][i], fields['text_info'][i])[0]
-            print(f'upsampled:\n {upsampled}')
+            # print(f'upsampled:\n {upsampled}')
             fields['prom_upsampled'].append(upsampled)
         fields['prom'] = [fields['prom'][i] for i in order]
         fields['prom_tensor'] = [fields['prom_tensor'][i] for i in order]
@@ -280,7 +280,7 @@ def prepare_input_sequence(fields, device, symbol_set, text_cleaners,
                 batch[f] = batch[f].to(device)
         batches.append(batch)
 
-    print(batches)
+    # print(batches)
     return batches
 
 
