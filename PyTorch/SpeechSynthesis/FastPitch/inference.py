@@ -438,28 +438,28 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True and args.cwt_boundary is True:
-                        mel, mel_lens, *_, cwt_prom_tgt, cwt_pred_label, cwt_b_tgt, b_pred_label, text_lens = \
+                        mel, mel_lens, *_, cwt_prom_tgt, cwt_pred_label, cwt_b_tgt, b_pred_label = \
                             generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'], cwt_b_tgt=b['b_upsampled'])
                         
                         for j, p in enumerate(cwt_prom_tgt):
                             fname = Path(b['output'][j]).with_suffix('.pt').name
                             fpath = Path(args.dataset_path, 'PB_tgt_prom', fname)
-                            torch.save(p[:text_lens[j]], fpath)
+                            torch.save(p[:b['text_lens'][j]], fpath)
                             
                         for j, p in enumerate(cwt_pred_label):
                             fname = Path(b['output'][j]).with_suffix('.pt').name
                             fpath = Path(args.dataset_path, 'PB_pred_prom', fname)
-                            torch.save(p[:text_lens[j]], fpath)
+                            torch.save(p[:b['text_lens'][j]], fpath)
 
                         for j, p in enumerate(cwt_b_tgt):
                             fname = Path(b['output'][j]).with_suffix('.pt').name
                             fpath = Path(args.dataset_path, 'PB_tgt_b', fname)
-                            torch.save(p[:text_lens[j]], fpath)
+                            torch.save(p[:b['text_lens'][j]], fpath)
 
                         for j, p in enumerate(b_pred_label):
                             fname = Path(b['output'][j]).with_suffix('.pt').name
                             fpath = Path(args.dataset_path, 'PB_pred_b', fname)
-                            torch.save(p[:text_lens[j]], fpath)
+                            torch.save(p[:b['text_lens'][j]], fpath)
                         
                     elif args.cwt_prominence is True:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'])
