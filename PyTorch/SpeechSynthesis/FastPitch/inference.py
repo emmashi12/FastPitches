@@ -394,7 +394,11 @@ def main():
         args.dataset_path, load_mels=(generator is None),
         load_cwt_prom=args.cwt_prominence, load_cwt_b=args.cwt_boundary,
         p_arpabet=args.p_arpabet, get_count=args.get_count)
-    # Path(args.dataset_path, 'generated_pitch').mkdir(parents=False, exist_ok=True)
+    
+    Path(args.dataset_path, 'PB_tgt_prom').mkdir(parents=False, exist_ok=True)
+    Path(args.dataset_path, 'PB_pred_prom').mkdir(parents=False, exist_ok=True)
+    Path(args.dataset_path, 'PB_tgt_b').mkdir(parents=False, exist_ok=True)
+    Path(args.dataset_path, 'PB_pred_b').mkdir(parents=False, exist_ok=True)
 
     # Use real data rather than synthetic - FastPitch predicts len
     for _ in tqdm(range(args.warmup_steps), 'Warmup'):
@@ -427,8 +431,6 @@ def main():
     log_enabled = reps == 1
     log = lambda s, d: DLLogger.log(step=s, data=d) if log_enabled else None
 
-    # correct_b, total_b = 0, 0
-    # correct_p, total_p = 0, 0
     for rep in (tqdm(range(reps), 'Inference') if reps > 1 else range(reps)):
         for b in batches:
             if generator is None:
@@ -437,20 +439,35 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True and args.cwt_boundary is True:
-                        mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'], cwt_b_tgt=b['b_upsampled'])
+                        mel, mel_lens, *_, cwt_prom_tgt, cwt_pred_label, cwt_b_tgt, b_pred_label, text_lens = \
+                            generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'], cwt_b_tgt=b['b_upsampled'])
+                        
+                        for j, p in enumerate(cwt_prom_tgt):
+                            fname = Path(b['output'][j]).with_suffix('.pt').name
+                            fpath = Path(args.dataset_path, 'PB_tgt_prom', fname)
+                            torch.save(p[:text_lens[j]], fpath)
+                            
+                        for j, p in enumerate(cwt_pred_label):
+                            fname = Path(b['output'][j]).with_suffix('.pt').name
+                            fpath = Path(args.dataset_path, 'PB_pred_prom', fname)
+                            torch.save(p[:text_lens[j]], fpath)
+
+                        for j, p in enumerate(cwt_b_tgt):
+                            fname = Path(b['output'][j]).with_suffix('.pt').name
+                            fpath = Path(args.dataset_path, 'PB_tgt_b', fname)
+                            torch.save(p[:text_lens[j]], fpath)
+
+                        for j, p in enumerate(b_pred_label):
+                            fname = Path(b['output'][j]).with_suffix('.pt').name
+                            fpath = Path(args.dataset_path, 'PB_pred_b', fname)
+                            torch.save(p[:text_lens[j]], fpath)
+                        
                     elif args.cwt_prominence is True:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_prom_tgt=b['prom_upsampled'])
                     elif args.cwt_boundary is True:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw, cwt_b_tgt=b['b_upsampled'])
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
-
-                    # if b_correct:
-                    #     correct_b += b_correct
-                    #     total_b += b_total
-                    # if p_correct:
-                    #     correct_p += p_correct
-                    #     total_p += p_total
 
                 gen_infer_perf = mel.size(0) * mel.size(2) / gen_measures[-1]
                 all_letters += b['text_lens'].sum().item()

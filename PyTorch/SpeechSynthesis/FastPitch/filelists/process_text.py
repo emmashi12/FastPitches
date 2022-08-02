@@ -22,26 +22,28 @@ def extract_text(infile="/Users/emmashi/Desktop/control_P.txt", outfile=None):
                     f.write('{}'.format(text))
 
 
-def add_column(infile="/Users/emmashi/Desktop/control_P+B.txt", outfile=None):
+def add_column(infile="/Users/emmashi/Desktop/ljs_audio_pitch_prom_b_text_test_cat.txt", outfile=None):
     out_filepath = '/Users/emmashi/Desktop'
     with open(infile) as file:
         for l in file:
-            # matchline = re.match('(.*)\/(.*)\.wav\|(.*)\|(.*)\|(.*)\|(.*)', l)
-            # outname = matchline.group(2)
-            # text = matchline.group(6)
-            # wavpath = matchline.group(1) + '/' + outname + '.wav'
-            # utt_path = 'pitch-prom-cat-' + outname + '.wav'
-            matchline = re.match('(.*)\/(.*)\|(.*)\|(.*)', l)
-            tensorname = matchline.group(2)
-            bpath = matchline.group(1) + '/' + tensorname
-            output = matchline.group(3)
-            text = matchline.group(4)
-            prompath = 'control-accent/' + tensorname
-            rewrite = prompath + '\t' + bpath + '\t' + output + '\t' + text
+            matchline = re.match('(.*)\/(.*)\.wav\|(.*)\|(.*)\|(.*)\|(.*)', l)
+            outname = matchline.group(2)
+            text = matchline.group(6)
+            prompath = matchline.group(4)
+            bpath = matchline.group(5)
+            wavpath = matchline.group(1) + '/' + outname + '.wav'
+            output = 'FP_P+B_' + outname + '.wav'
+            # matchline = re.match('(.*)\/(.*)\|(.*)\|(.*)', l)
+            # tensorname = matchline.group(2)
+            # bpath = matchline.group(1) + '/' + tensorname
+            # output = matchline.group(3)
+            # text = matchline.group(4)
+            # prompath = 'control-accent/' + tensorname
+            rewrite = bpath + '\t' + prompath + '\t' + output + '\t' + text
             #print(rewrite)
             if outfile:
                 os.chdir(out_filepath)
-                with open("control_P+B.tsv", 'a') as f:
+                with open("ljs_FP_P+B.tsv", 'a') as f:
                     f.write('{}\n'.format(rewrite))
 
 
@@ -83,7 +85,7 @@ def extract_infer_text(infile="/Users/emmashi/Desktop/test_infer.txt", outfile=N
                     f.write('{}\n'.format(text))
 
 
-extract_text(outfile=True)
-# add_column(outfile=True)
+# extract_text(outfile=True)
+add_column(outfile=True)
 # remove_wav(outfile=True)
 # extract_infer_text(outfile=True)

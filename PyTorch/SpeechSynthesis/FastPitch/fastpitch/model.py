@@ -535,6 +535,8 @@ class FastPitch(nn.Module):
             spk_emb = self.speaker_emb(speaker).unsqueeze(1)
             spk_emb.mul_(self.speaker_emb_weight)
 
+        text_lens = inputs[1]
+        
         # Input FFT
         enc_out, enc_mask = self.encoder(inputs, conditioning=spk_emb)
 
@@ -551,10 +553,8 @@ class FastPitch(nn.Module):
                 b_pred_label = torch.argmax(b_pred_label, dim=1)
                 if cwt_b_tgt is not None:
                     cwt_b_emb = self.cwt_b_emb(cwt_b_tgt)
-                    b_correct, b_total = accuracy(b_pred_label, cwt_b_tgt)
                 else:
                     cwt_b_emb = self.cwt_b_emb(b_pred_label)
-                    b_correct, b_total = None, None
             else:
                 cwt_b_pred = None
 
@@ -574,10 +574,8 @@ class FastPitch(nn.Module):
                     cwt_pred_label = torch.argmax(cwt_pred_label, dim=1)  # [16, 124]
                     if cwt_prom_tgt is None:
                         cwt_prom_emb = self.cwt_prom_emb(cwt_pred_label)
-                        p_correct, p_total = None, None
                     else:
                         cwt_prom_emb = self.cwt_prom_emb(cwt_prom_tgt)
-                        p_correct, p_total = accuracy(cwt_pred_label, cwt_prom_tgt)
                 enc_out = enc_out + cwt_prom_emb
             else:
                 cwt_prom_pred = None
@@ -637,4 +635,5 @@ class FastPitch(nn.Module):
         mel_out = self.proj(dec_out)
         # mel_lens = dec_mask.squeeze(2).sum(axis=1).long()
         mel_out = mel_out.permute(0, 2, 1)  # For inference.py
-        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_prom_pred, cwt_b_pred  # b_correct, b_total, p_correct, p_total
+        return mel_out, dec_lens, dur_pred, pitch_pred, energy_pred, cwt_prom_pred, cwt_b_pred, cwt_prom_tgt, \
+               cwt_pred_label, cwt_b_tgt, b_pred_label, text_lens  # b_correct, b_total, p_correct, p_total
