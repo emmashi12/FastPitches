@@ -426,19 +426,19 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True:
-                        mel, mel_lens, *_, cwt_tgt, cwt_pred_label, text_lens = generator(b['text'],
-                                                                                          **gen_kw, cwt_tgt=b['prom_upsampled'])
+                        mel, mel_lens, *_, cwt_tgt, cwt_pred_label, text_lens = \
+                            generator(b['text'], **gen_kw, cwt_tgt=b['prom_upsampled'])
 
                         # save predicted pitch tensor
                         for j, p in enumerate(cwt_tgt):
                             fname = Path(b['output'][j]).with_suffix('.pt').name
                             fpath = Path(args.dataset_path, 'tgt_cwt', fname)
-                            torch.save(p[:text_lens[j]], fpath)
+                            torch.save(p[:b['text_lens'][j]], fpath)
 
                         for j, p in enumerate(cwt_pred_label):
                             fname = Path(b['output'][j]).with_suffix('.pt').name
                             fpath = Path(args.dataset_path, 'pred_cwt', fname)
-                            torch.save(p[:text_lens[j]], fpath)
+                            torch.save(p[:b['text_lens'][j]], fpath)
                     else:
                         mel, mel_lens, *_ = generator(b['text'], **gen_kw)
 
