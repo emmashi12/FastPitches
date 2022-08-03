@@ -426,7 +426,7 @@ def main():
             else:
                 with torch.no_grad(), gen_measures:
                     if args.cwt_prominence is True:
-                        mel, mel_lens, *_, cwt_tgt, cwt_pred_label, text_lens = \
+                        mel, mel_lens, *_, cwt_tgt, cwt_pred_label = \
                             generator(b['text'], **gen_kw, cwt_tgt=b['prom_upsampled'])
 
                         # save predicted pitch tensor
